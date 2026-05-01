@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, ActivityIndicator } from 'react-nat
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { theme } from '../theme';
 import { ApiService, PetStatus } from '../services/api';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { Card } from '../components/Card';
 
 export const MapScreen = () => {

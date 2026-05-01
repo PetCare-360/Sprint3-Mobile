@@ -1,21 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  ToastAndroid,
-  ActivityIndicator,
-} from 'react-native';
+import {View,Text,StyleSheet,TextInput,TouchableOpacity,ScrollView,Image,KeyboardAvoidingView,Platform,Alert,ToastAndroid,ActivityIndicator,} from 'react-native';
 import { theme } from '../theme';
 import { Card } from '../components/Card';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { salvar } from '../services/imageApi';
 import { StorageService, PetData } from '../storage';
@@ -63,8 +50,6 @@ export const ProfileScreen = () => {
           try {
             await salvar(selectedImage.base64);
             setImagem(selectedImage.base64);
-            
-            // Persistir também no storage local imediatamente
             await StorageService.savePetData({
               name: petName,
               breed,

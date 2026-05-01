@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { theme } from '../theme';
 import { Card } from './Card';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface NotificationItemProps {
   title: string;
@@ -11,8 +11,10 @@ interface NotificationItemProps {
   type: 'success' | 'warning' | 'danger' | 'info';
 }
 
+type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
+
 export const NotificationItem = ({ title, message, time, type }: NotificationItemProps) => {
-  const getIconConfig = () => {
+  const getIconConfig = (): { name: IconName; color: string } => {
     switch (type) {
       case 'success':
         return { name: 'check-circle-outline', color: theme.colors.success };
@@ -30,8 +32,9 @@ export const NotificationItem = ({ title, message, time, type }: NotificationIte
   return (
     <Card style={styles.card}>
       <View style={styles.container}>
-        <View style={[styles.iconContainer, { backgroundColor: iconConfig.color + '20' }]}>
-          <Icon name={iconConfig.name} size={24} color={iconConfig.color} />
+        <View style={[styles.iconContainer, { backgroundColor: iconConfig.color }]}>
+          <View style={styles.iconBackgroundOverlay} />
+          <MaterialCommunityIcons name={iconConfig.name} size={24} color={iconConfig.color} />
         </View>
         <View style={styles.content}>
           <View style={styles.header}>
@@ -62,6 +65,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  iconBackgroundOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'white',
+    opacity: 0.8,
   },
   content: {
     flex: 1,

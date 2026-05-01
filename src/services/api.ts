@@ -22,7 +22,7 @@ export const ApiService = {
           activity: 'Descansando',
           battery: 85,
           location: {
-            latitude: -23.5505, // Coordenadas exemplo (São Paulo)
+            latitude: -23.5505, // Coordenadas exemplo (Praça da Sé)
             longitude: -46.6333,
             latitudeDelta: 0.01,
             longitudeDelta: 0.01,
