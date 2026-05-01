@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,14 @@ import {
   Platform,
   Alert,
   ToastAndroid,
+  ActivityIndicator,
 } from 'react-native';
 import { theme } from '../theme';
 import { Card } from '../components/Card';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
 import { salvar } from '../services/imageApi';
+import { StorageService, PetData } from '../storage';
 
 export const ProfileScreen = () => {
   const [petName, setPetName] = useState('Max');
@@ -24,6 +26,23 @@ export const ProfileScreen = () => {
   const [age, setAge] = useState('3');
   const [weight, setWeight] = useState('28.5');
   const [imagem, setImagem] = useState<string | null | undefined>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadPetData();
+  }, []);
+
+  const loadPetData = async () => {
+    const data = await StorageService.getPetData();
+    if (data) {
+      setPetName(data.name);
+      setBreed(data.breed);
+      setAge(data.age);
+      setWeight(data.weight);
+      setImagem(data.image);
+    }
+    setIsLoading(false);
+  };
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -31,19 +50,29 @@ export const ProfileScreen = () => {
     if (permissionResult.granted) {
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
-        allowsEditing: false, // Mantendo idêntico ao exemplo: allowsEditing: false
-        aspect: [4, 3],       // Mantendo idêntico ao exemplo
-        quality: 0.2,         // Mantendo idêntico ao exemplo
-        base64: true          // Importante para a API fornecida
+        allowsEditing: false,
+        aspect: [4, 3],
+        quality: 0.2,
+        base64: true
       });
 
       if (result.assets != null && result.assets.length > 0) {
         const selectedImage = result.assets[0];
         if (selectedImage.base64 != null && selectedImage.base64 != undefined) {
-          console.log("Salvando a imagem...");
+          console.log("Salvando a imagem remotamente...");
           try {
             await salvar(selectedImage.base64);
             setImagem(selectedImage.base64);
+            
+            // Persistir também no storage local imediatamente
+            await StorageService.savePetData({
+              name: petName,
+              breed,
+              age,
+              weight,
+              image: selectedImage.base64
+            });
+
             console.log("Imagem Salva");
             if (Platform.OS === 'android') {
               ToastAndroid.show("Imagem salva com sucesso!", ToastAndroid.SHORT);
@@ -65,9 +94,26 @@ export const ProfileScreen = () => {
     }
   };
 
-  const handleSave = () => {
-    Alert.alert('Sucesso', 'As informações do pet foram salvas com sucesso!');
+  const handleSave = async () => {
+    const data: PetData = {
+      name: petName,
+      breed,
+      age,
+      weight,
+      image: imagem
+    };
+    
+    await StorageService.savePetData(data);
+    Alert.alert('Sucesso', 'As informações do pet foram salvas localmente!');
   };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -147,9 +193,9 @@ export const ProfileScreen = () => {
           <Text style={styles.saveButtonText}>Salvar Alterações</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton}>
-          <Icon name="logout" size={20} color={theme.colors.danger} />
-          <Text style={styles.logoutText}>Sair da Conta</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={() => StorageService.clearAll()}>
+          <Icon name="trash-can-outline" size={20} color={theme.colors.danger} />
+          <Text style={styles.logoutText}>Limpar Dados Locais</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -160,6 +206,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollContent: {
     padding: theme.spacing.lg,
