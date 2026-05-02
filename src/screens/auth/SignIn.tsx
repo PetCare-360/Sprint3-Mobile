@@ -45,8 +45,13 @@ export const SignIn = () => {
           <TouchableOpacity 
             style={styles.button}
             onPress={handleSignIn}
+            disabled={loading}
           >
-            <Text style={styles.buttonText}>Entrar</Text>
+            {loading ? (
+              <ActivityIndicator color={theme.colors.white} />
+            ) : (
+              <Text style={styles.buttonText}>Entrar</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.footer}>
