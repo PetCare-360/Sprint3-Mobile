@@ -1,28 +1,46 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
-import { theme } from '../theme';
+import { View, StyleSheet, ViewStyle, Platform, StyleProp } from 'react-native';
+import { useAppTheme } from '../context/ThemeContext';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
-export const Card = ({ children, style }: CardProps) => (
-  <View style={[styles.card, style]}>
-    {children}
-  </View>
-);
+export const Card = ({ children, style }: CardProps) => {
+  const { theme, isDark } = useAppTheme();
+
+  return (
+    <View style={[
+      styles.card, 
+      { 
+        backgroundColor: theme.colors.card,
+        borderRadius: theme.borderRadius.lg,
+        // No dark mode, shadows are often replaced by subtle borders or slightly lighter backgrounds
+        shadowOpacity: isDark ? 0 : 0.08, 
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.colors.border,
+      }, 
+      style
+    ]}>
+      {children}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: theme.colors.white,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: 16,
+    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
 });

@@ -1,94 +1,160 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, RefreshControl } from 'react-native';
-import { theme } from '../theme';
+import React, { useEffect, useState, useCallback } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  SafeAreaView, 
+  ActivityIndicator, 
+  RefreshControl,
+  Image,
+  StatusBar
+} from 'react-native';
 import { Card } from '../components/Card';
 import { InfoCard } from '../components/InfoCard';
 import { ApiService, PetStatus } from '../services/api';
+import { StorageService, PetData } from '../storage';
+import { useAppTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 export const HomeScreen = () => {
+  const { theme, isDark } = useAppTheme();
+  const { user } = useAuth();
   const [status, setStatus] = useState<PetStatus | null>(null);
+  const [petData, setPetData] = useState<PetData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadStatus();
-  }, []);
-
-  const loadStatus = async () => {
+  const loadData = useCallback(async () => {
     try {
-      const data = await ApiService.getPetStatus();
-      setStatus(data);
+      const [statusData, localPetData] = await Promise.all([
+        ApiService.getPetStatus('1'),
+        StorageService.getPetData()
+      ]);
+      setStatus(statusData);
+      setPetData(localPetData);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadStatus();
+    loadData();
   };
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
+  const isCritical = status?.heartRate && status.heartRate > 120;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <ScrollView 
         contentContainerStyle={styles.container}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            tintColor={theme.colors.primary} 
+          />
         }
       >
-        <Text style={styles.welcomeText}>Olá, Pet Lover! 🐾</Text>
-        <Text style={styles.subtitle}>Confira como seu pet está agora.</Text>
+        <View style={styles.header}>
+          <View>
+            <Text style={[styles.welcomeText, { color: theme.colors.text }]}>
+              Olá, {user?.name.split(' ')[0] || 'Pet Lover'}! 🐾
+            </Text>
+            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+              {petData?.name || 'Seu pet'} está {isCritical ? 'precisando de atenção' : 'bem agora'}.
+            </Text>
+          </View>
+          {petData?.image ? (
+            <Image 
+              source={{ uri: `data:image/png;base64,${petData.image}` }} 
+              style={styles.avatar} 
+            />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: theme.colors.card }]}>
+              <Text style={{ fontSize: 24 }}>🐶</Text>
+            </View>
+          )}
+        </View>
 
-        <Card style={styles.mainCard}>
-          <Text style={styles.cardTitle}>Status Geral: {status?.heartRate && status.heartRate > 120 ? 'Alerta' : 'Seguro'}</Text>
-          <View style={styles.row}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Sinais Vitais</Text>
+        
+        <View style={styles.statsGrid}>
+          <Card style={styles.statCard}>
             <InfoCard 
               label="Temperatura" 
               value={status?.temperature.toFixed(1) || '--'} 
               unit="°C" 
-              iconColor={theme.colors.success} 
+              icon="thermometer"
+              iconColor={theme.colors.danger} 
             />
+          </Card>
+          <Card style={styles.statCard}>
             <InfoCard 
               label="Batimentos" 
               value={status?.heartRate.toString() || '--'} 
               unit="bpm" 
+              icon="heart-pulse"
               iconColor={theme.colors.secondary} 
             />
-          </View>
-          <View style={styles.row}>
+          </Card>
+        </View>
+
+        <View style={styles.statsGrid}>
+          <Card style={styles.statCard}>
             <InfoCard 
               label="Atividade" 
               value={status?.activity || '--'} 
-              iconColor={theme.colors.primary} 
+              icon="run"
+              iconColor={theme.colors.success} 
             />
+          </Card>
+          <Card style={styles.statCard}>
             <InfoCard 
               label="Bateria" 
               value={status?.battery.toString() || '--'} 
               unit="%" 
+              icon="battery-80"
               iconColor={theme.colors.warning} 
             />
+          </Card>
+        </View>
+
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Localização</Text>
+        <Card style={styles.locationCard}>
+          <View style={styles.locationHeader}>
+            <View style={[styles.locationIcon, { backgroundColor: theme.colors.primary + '15' }]}>
+              <Text style={{ fontSize: 20 }}>📍</Text>
+            </View>
+            <View>
+              <Text style={[styles.locationTitle, { color: theme.colors.text }]}>Centro, São Paulo - SP</Text>
+              <Text style={[styles.locationSubtitle, { color: theme.colors.textSecondary }]}>Visto pela última vez às 10:30</Text>
+            </View>
           </View>
         </Card>
 
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Resumo Diário</Text>
         <Card>
-          <Text style={styles.cardTitle}>Última Localização</Text>
-          <Text style={styles.locationText}>Centro, São Paulo - SP</Text>
-        </Card>
-
-        <Card>
-          <Text style={styles.cardTitle}>Resumo do Dia</Text>
-          <Text style={styles.summaryText}>Seu pet caminhou 2.5km hoje e dormiu 12 horas.</Text>
+          <Text style={[styles.summaryText, { color: theme.colors.text }]}>
+            Seu pet caminhou <Text style={{ fontWeight: 'bold', color: theme.colors.primary }}>2.5km</Text> hoje e dormiu <Text style={{ fontWeight: 'bold', color: theme.colors.primary }}>12 horas</Text>.
+          </Text>
         </Card>
       </ScrollView>
     </SafeAreaView>
@@ -98,47 +164,87 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.colors.background,
   },
   container: {
-    padding: theme.spacing.md,
+    padding: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 32,
+    marginTop: 10,
   },
   welcomeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text,
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 16,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.lg,
+    marginTop: 4,
+    fontWeight: '500',
   },
-  mainCard: {
-    paddingVertical: theme.spacing.lg,
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 3,
+    borderColor: '#FFF',
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
+  avatarPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#DDD',
   },
-  row: {
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 16,
+    letterSpacing: -0.5,
+  },
+  statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.sm,
   },
-  locationText: {
-    color: theme.colors.primary,
+  statCard: {
+    width: '48%',
+    padding: 12,
+  },
+  locationCard: {
+    padding: 16,
+  },
+  locationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  locationTitle: {
+    fontSize: 16,
     fontWeight: '600',
   },
+  locationSubtitle: {
+    fontSize: 13,
+    marginTop: 2,
+  },
   summaryText: {
-    color: theme.colors.textSecondary,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 22,
   },
 });

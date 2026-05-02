@@ -1,17 +1,41 @@
 import React, { useState } from 'react';
-import { View,Text,TextInput,TouchableOpacity,StyleSheet,KeyboardAvoidingView,Platform,Alert} from 'react-native';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  KeyboardAvoidingView, 
+  Platform,
+  Alert,
+  ActivityIndicator
+} from 'react-native';
 import { theme } from '../../theme';
+import { useAuth } from '../../context/AuthContext';
 
 export const SignIn = () => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signIn } = useAuth();
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     if (!login || !password) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
-    console.log('Login attempt:', { login, password });
+
+    setIsSubmitting(true);
+    try {
+      const success = await signIn(login, password);
+      if (!success) {
+        Alert.alert('Erro', 'Usuário ou senha inválidos.');
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Ocorreu um problema ao entrar. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -45,9 +69,9 @@ export const SignIn = () => {
           <TouchableOpacity 
             style={styles.button}
             onPress={handleSignIn}
-            disabled={loading}
+            disabled={isSubmitting}
           >
-            {loading ? (
+            {isSubmitting ? (
               <ActivityIndicator color={theme.colors.white} />
             ) : (
               <Text style={styles.buttonText}>Entrar</Text>

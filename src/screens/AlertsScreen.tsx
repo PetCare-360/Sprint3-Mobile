@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
-import { theme } from '../theme';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, StatusBar } from 'react-native';
+import { useAppTheme } from '../context/ThemeContext';
 import { NotificationItem } from '../components/NotificationItem';
 
 const ALERTS_DATA = [
@@ -34,49 +34,57 @@ const ALERTS_DATA = [
   },
 ];
 
-export const AlertsScreen = () => (
-  <SafeAreaView style={styles.container}>
-    <View style={styles.header}>
-      <Text style={styles.title}>Alertas e Notificações</Text>
-      <Text style={styles.subtitle}>Acompanhe o que está acontecendo com seu pet</Text>
-    </View>
-    
-    <FlatList
-      data={ALERTS_DATA}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <NotificationItem
-          title={item.title}
-          message={item.message}
-          time={item.time}
-          type={item.type}
-        />
-      )}
-      contentContainerStyle={styles.listContent}
-    />
-  </SafeAreaView>
-);
+export const AlertsScreen = () => {
+  const { theme, isDark } = useAppTheme();
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Alertas</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+          Acompanhe o que está acontecendo com seu pet
+        </Text>
+      </View>
+      
+      <FlatList
+        data={ALERTS_DATA}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <NotificationItem
+            title={item.title}
+            message={item.message}
+            time={item.time}
+            type={item.type}
+          />
+        )}
+        contentContainerStyle={styles.listContent}
+      />
+    </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   header: {
-    padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 34,
     fontWeight: 'bold',
-    color: theme.colors.text,
+    letterSpacing: -1,
   },
   subtitle: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xs,
+    fontSize: 16,
+    marginTop: 4,
+    fontWeight: '500',
   },
   listContent: {
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: 40,
+    paddingTop: 8,
   },
 });

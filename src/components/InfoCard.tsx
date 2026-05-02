@@ -1,50 +1,69 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { theme } from '../theme';
+import { useAppTheme } from '../context/ThemeContext';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface InfoCardProps {
   label: string;
   value: string | number;
   unit?: string;
+  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
   iconColor?: string;
 }
 
-export const InfoCard = ({ label, value, unit, iconColor }: InfoCardProps) => (
-  <View style={styles.container}>
-    <View style={[styles.dot, { backgroundColor: iconColor || theme.colors.primary }]} />
-    <Text style={styles.label}>{label}</Text>
-    <Text style={styles.value}>
-      {value}
-      <Text style={styles.unit}>{unit}</Text>
-    </Text>
-  </View>
-);
+export const InfoCard = ({ label, value, unit, icon, iconColor }: InfoCardProps) => {
+  const { theme } = useAppTheme();
+  const color = iconColor || theme.colors.primary;
+
+  return (
+    <View style={styles.container}>
+      <View style={[styles.iconContainer, { backgroundColor: color + '15' }]}>
+        <MaterialCommunityIcons 
+          name={icon || 'information'} 
+          size={22} 
+          color={color} 
+        />
+      </View>
+      <View style={styles.textContainer}>
+        <Text style={[styles.label, { color: theme.colors.textSecondary }]}>{label}</Text>
+        <Text style={[styles.value, { color: theme.colors.text }]}>
+          {value}
+          {unit && <Text style={styles.unit}> {unit}</Text>}
+        </Text>
+      </View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: theme.spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginBottom: theme.spacing.xs,
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  textContainer: {
+    flex: 1,
   },
   label: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
+    fontSize: 13,
     marginBottom: 2,
+    fontWeight: '500',
   },
   value: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
-    color: theme.colors.text,
   },
   unit: {
     fontSize: 12,
     fontWeight: 'normal',
-    color: theme.colors.textSecondary,
-    marginLeft: 2,
   },
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { theme } from '../theme';
+import { useAppTheme } from '../context/ThemeContext';
 import { Card } from './Card';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -14,6 +14,8 @@ interface NotificationItemProps {
 type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
 
 export const NotificationItem = ({ title, message, time, type }: NotificationItemProps) => {
+  const { theme } = useAppTheme();
+
   const getIconConfig = (): { name: IconName; color: string } => {
     switch (type) {
       case 'success':
@@ -32,16 +34,17 @@ export const NotificationItem = ({ title, message, time, type }: NotificationIte
   return (
     <Card style={styles.card}>
       <View style={styles.container}>
-        <View style={[styles.iconContainer, { backgroundColor: iconConfig.color }]}>
-          <View style={styles.iconBackgroundOverlay} />
+        <View style={[styles.iconContainer, { backgroundColor: iconConfig.color + '20' }]}>
           <MaterialCommunityIcons name={iconConfig.name} size={24} color={iconConfig.color} />
         </View>
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.time}>{time}</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
+            <Text style={[styles.time, { color: theme.colors.textSecondary }]}>{time}</Text>
           </View>
-          <Text style={styles.message} numberOfLines={2}>{message}</Text>
+          <Text style={[styles.message, { color: theme.colors.textSecondary }]} numberOfLines={2}>
+            {message}
+          </Text>
         </View>
       </View>
     </Card>
@@ -50,9 +53,9 @@ export const NotificationItem = ({ title, message, time, type }: NotificationIte
 
 const styles = StyleSheet.create({
   card: {
-    padding: theme.spacing.sm,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
+    padding: 12,
+    marginHorizontal: 20,
+    marginBottom: 12,
   },
   container: {
     flexDirection: 'row',
@@ -61,17 +64,10 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 48,
     height: 48,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: theme.spacing.md,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  iconBackgroundOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'white',
-    opacity: 0.8,
+    marginRight: 16,
   },
   content: {
     flex: 1,
@@ -80,20 +76,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   title: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: theme.colors.text,
   },
   time: {
     fontSize: 12,
-    color: theme.colors.textSecondary,
   },
   message: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 18,
   },
 });

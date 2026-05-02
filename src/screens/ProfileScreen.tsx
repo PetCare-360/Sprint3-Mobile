@@ -1,13 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import {View,Text,StyleSheet,TextInput,TouchableOpacity,ScrollView,Image,KeyboardAvoidingView,Platform,Alert,ToastAndroid,ActivityIndicator,} from 'react-native';
-import { theme } from '../theme';
-import { Card } from '../components/Card';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  ToastAndroid,
+  ActivityIndicator,
+  Switch,
+} from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { salvar } from '../services/imageApi';
 import { StorageService, PetData } from '../storage';
+import { useAppTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 export const ProfileScreen = () => {
+  const { theme, isDark, themeType, setThemeType } = useAppTheme();
+  const { signOut } = useAuth();
   const [petName, setPetName] = useState('Max');
   const [breed, setBreed] = useState('Golden Retriever');
   const [age, setAge] = useState('3');
@@ -46,7 +62,6 @@ export const ProfileScreen = () => {
       if (result.assets != null && result.assets.length > 0) {
         const selectedImage = result.assets[0];
         if (selectedImage.base64 != null && selectedImage.base64 != undefined) {
-          console.log("Salvando a imagem remotamente...");
           try {
             await salvar(selectedImage.base64);
             setImagem(selectedImage.base64);
@@ -57,25 +72,18 @@ export const ProfileScreen = () => {
               weight,
               image: selectedImage.base64
             });
-
-            console.log("Imagem Salva");
             if (Platform.OS === 'android') {
               ToastAndroid.show("Imagem salva com sucesso!", ToastAndroid.SHORT);
             } else {
               Alert.alert("Sucesso", "Imagem salva com sucesso!");
             }
           } catch (err) {
-            console.log("Erro : ", err);
             Alert.alert("Erro", "Não foi possível salvar a imagem remotamente.");
           }
         }
       }
     } else {
-      if (Platform.OS === 'android') {
-        ToastAndroid.show("É necessário permissão para acessar a galeria", ToastAndroid.LONG);
-      } else {
-        Alert.alert("Permissão Necessária", "É necessário permissão para acessar a galeria");
-      }
+      Alert.alert("Permissão Necessária", "É necessário permissão para acessar a galeria");
     }
   };
 
@@ -89,29 +97,55 @@ export const ProfileScreen = () => {
     };
     
     await StorageService.savePetData(data);
-    Alert.alert('Sucesso', 'As informações do pet foram salvas localmente!');
+    Alert.alert('Sucesso', 'Informações salvas!');
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Sair',
+      'Deseja realmente sair da sua conta?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Sair', style: 'destructive', onPress: () => signOut() }
+      ]
+    );
   };
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
+  const Section = ({ title, children }: { title?: string, children: React.ReactNode }) => (
+    <View style={styles.section}>
+      {title && <Text style={[styles.sectionHeader, { color: theme.colors.textSecondary }]}>{title}</Text>}
+      <View style={[styles.sectionBody, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+        {children}
+      </View>
+    </View>
+  );
+
+  const Row = ({ label, children, isLast = false }: { label: string, children: React.ReactNode, isLast?: boolean }) => (
+    <View style={[styles.row, !isLast && { borderBottomWidth: 0.5, borderBottomColor: theme.colors.border }]}>
+      <Text style={[styles.rowLabel, { color: theme.colors.text }]}>{label}</Text>
+      <View style={styles.rowValue}>{children}</View>
+    </View>
+  );
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Perfil do Pet</Text>
-          <Text style={styles.subtitle}>Gerencie as informações do seu melhor amigo</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Ajustes</Text>
         </View>
 
-        <View style={styles.imageSection}>
+        <View style={styles.profileHeader}>
           <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
             {imagem ? (
               <Image 
@@ -119,69 +153,79 @@ export const ProfileScreen = () => {
                 style={styles.profileImage} 
               />
             ) : (
-              <View style={styles.placeholderImage}>
-                <Icon name="camera" size={40} color={theme.colors.textSecondary} />
+              <View style={[styles.placeholderImage, { backgroundColor: theme.colors.card }]}>
+                <Icon name="camera" size={32} color={theme.colors.textSecondary} />
               </View>
             )}
-            <View style={styles.editBadge}>
-              <Icon name="pencil" size={16} color={theme.colors.white} />
+            <View style={[styles.editBadge, { backgroundColor: theme.colors.primary }]}>
+              <Icon name="pencil" size={14} color="#FFF" />
             </View>
           </TouchableOpacity>
+          <Text style={[styles.profileName, { color: theme.colors.text }]}>{petName}</Text>
+          <Text style={[styles.profileSubtitle, { color: theme.colors.textSecondary }]}>{breed}</Text>
         </View>
 
-        <Card style={styles.formCard}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nome do Pet</Text>
+        <Section title="INFORMAÇÕES DO PET">
+          <Row label="Nome">
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.colors.text }]}
               value={petName}
               onChangeText={setPetName}
-              placeholder="Ex: Max"
+              placeholderTextColor={theme.colors.textSecondary}
+              textAlign="right"
             />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Raça</Text>
+          </Row>
+          <Row label="Raça">
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.colors.text }]}
               value={breed}
               onChangeText={setBreed}
-              placeholder="Ex: Golden Retriever"
+              placeholderTextColor={theme.colors.textSecondary}
+              textAlign="right"
             />
-          </View>
+          </Row>
+          <Row label="Idade">
+            <TextInput
+              style={[styles.input, { color: theme.colors.text }]}
+              value={age}
+              onChangeText={setAge}
+              keyboardType="numeric"
+              textAlign="right"
+            />
+          </Row>
+          <Row label="Peso (kg)" isLast>
+            <TextInput
+              style={[styles.input, { color: theme.colors.text }]}
+              value={weight}
+              onChangeText={setWeight}
+              keyboardType="numeric"
+              textAlign="right"
+            />
+          </Row>
+        </Section>
 
-          <View style={styles.row}>
-            <View style={[styles.inputGroup, { flex: 1, marginRight: theme.spacing.md }]}>
-              <Text style={styles.label}>Idade (anos)</Text>
-              <TextInput
-                style={styles.input}
-                value={age}
-                onChangeText={setAge}
-                keyboardType="numeric"
-                placeholder="0"
-              />
-            </View>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Peso (kg)</Text>
-              <TextInput
-                style={styles.input}
-                value={weight}
-                onChangeText={setWeight}
-                keyboardType="numeric"
-                placeholder="0.0"
-              />
-            </View>
-          </View>
-        </Card>
+        <Section title="PREFERÊNCIAS">
+          <Row label="Modo Escuro" isLast>
+            <Switch
+              value={isDark}
+              onValueChange={(val) => setThemeType(val ? 'dark' : 'light')}
+              trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+              thumbColor={Platform.OS === 'ios' ? undefined : (isDark ? theme.colors.primary : '#f4f3f4')}
+            />
+          </Row>
+        </Section>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+        <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.colors.primary }]} onPress={handleSave}>
           <Text style={styles.saveButtonText}>Salvar Alterações</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={() => StorageService.clearAll()}>
-          <Icon name="trash-can-outline" size={20} color={theme.colors.danger} />
-          <Text style={styles.logoutText}>Limpar Dados Locais</Text>
-        </TouchableOpacity>
+        <Section>
+          <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
+            <Text style={[styles.logoutText, { color: theme.colors.danger }]}>Sair da Conta</Text>
+          </TouchableOpacity>
+        </Section>
+
+        <Text style={[styles.versionText, { color: theme.colors.textSecondary }]}>PetCare 360 v1.0.0</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -190,45 +234,41 @@ export const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   scrollContent: {
-    padding: theme.spacing.lg,
+    paddingBottom: 40,
   },
   header: {
-    marginBottom: theme.spacing.xl,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   title: {
-    fontSize: 24,
+    fontSize: 34,
     fontWeight: 'bold',
-    color: theme.colors.text,
+    letterSpacing: -1,
   },
-  subtitle: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xs,
-  },
-  imageSection: {
+  profileHeader: {
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
+    marginVertical: 20,
   },
   imageContainer: {
     position: 'relative',
+    marginBottom: 12,
   },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
   },
   placeholderImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: theme.colors.border,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -236,62 +276,82 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: theme.colors.primary,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: theme.colors.white,
+    borderWidth: 2,
+    borderColor: '#FFF',
   },
-  formCard: {
-    padding: theme.spacing.lg,
+  profileName: {
+    fontSize: 22,
+    fontWeight: '700',
   },
-  inputGroup: {
-    marginBottom: theme.spacing.md,
+  profileSubtitle: {
+    fontSize: 15,
+    marginTop: 2,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
+  section: {
+    marginTop: 24,
+    paddingHorizontal: 20,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    fontSize: 16,
-    color: theme.colors.text,
-    backgroundColor: theme.colors.white,
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '400',
+    marginBottom: 8,
+    marginLeft: 16,
+    textTransform: 'uppercase',
+  },
+  sectionBody: {
+    borderRadius: 12,
+    borderWidth: Platform.OS === 'android' ? 1 : 0,
+    overflow: 'hidden',
   },
   row: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    minHeight: 44,
+  },
+  rowLabel: {
+    fontSize: 17,
+  },
+  rowValue: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  input: {
+    fontSize: 17,
+    width: '100%',
+    paddingVertical: 8,
   },
   saveButton: {
-    backgroundColor: theme.colors.primary,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.lg,
+    marginHorizontal: 20,
+    marginTop: 32,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: theme.spacing.lg,
   },
   saveButtonText: {
-    color: theme.colors.white,
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#FFF',
+    fontSize: 17,
+    fontWeight: '600',
   },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  logoutRow: {
+    height: 44,
     justifyContent: 'center',
-    marginTop: theme.spacing.xl,
-    padding: theme.spacing.md,
+    alignItems: 'center',
   },
   logoutText: {
-    color: theme.colors.danger,
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: theme.spacing.sm,
+    fontSize: 17,
+    fontWeight: '400',
+  },
+  versionText: {
+    textAlign: 'center',
+    marginTop: 24,
+    fontSize: 13,
   },
 });
