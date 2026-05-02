@@ -1,80 +1,105 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '../../components/Card';
-import { ApiService, PetStatus } from '../../services/api';
+import { AlertService, RiskLevel } from '../../services/alertService';
+
+interface Patient {
+  id: string;
+  name: string;
+  breed: string;
+  owner: string;
+  heartRate: number;
+  temperature: number;
+  activity: 'Baixa' | 'Média' | 'Alta';
+}
+
+const mockPatients: Patient[] = [
+  { id: '1', name: 'Max', breed: 'Golden Retriever', owner: 'Carlos Silva', heartRate: 140, temperature: 39.5, activity: 'Alta' },
+  { id: '2', name: 'Luna', breed: 'Siamês', owner: 'Ana Oliveira', heartRate: 80, temperature: 38.5, activity: 'Baixa' },
+  { id: '3', name: 'Thor', breed: 'Bulldog', owner: 'João Souza', heartRate: 110, temperature: 38.8, activity: 'Média' },
+  { id: '4', name: 'Bella', breed: 'Poodle', owner: 'Maria Luz', heartRate: 135, temperature: 38.2, activity: 'Média' },
+  { id: '5', name: 'Mike', breed: 'Beagle', owner: 'Pedro Rocha', heartRate: 90, temperature: 39.2, activity: 'Baixa' },
+  { id: '6', name: 'Nina', breed: 'Persa', owner: 'Julia Costa', heartRate: 95, temperature: 38.4, activity: 'Alta' },
+];
 
 export const Patients = ({ navigation }: any) => {
-  const [patients, setPatients] = useState<PetStatus[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    fetchPatients();
-  }, []);
+  const filteredPatients = mockPatients.filter(p => 
+    p.name.toLowerCase().includes(search.toLowerCase()) || 
+    p.breed.toLowerCase().includes(search.toLowerCase())
+  ).map(p => ({
+    ...p,
+    status: AlertService.calculateRiskLevel({
+      temperature: p.temperature,
+      heartRate: p.heartRate,
+      activity: p.activity
+    })
+  })).sort((a, b) => {
+    const priority = { critical: 0, warning: 1, stable: 2 };
+    return priority[a.status as RiskLevel] - priority[b.status as RiskLevel];
+  });
 
-  const fetchPatients = async () => {
-    try {
-      const data = await ApiService.getPatients();
-      setPatients(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'critical': return theme.colors.danger;
-      case 'warning': return theme.colors.warning;
-      default: return theme.colors.success;
-    }
-  };
-
-  const renderItem = ({ item }: { item: PetStatus }) => (
-    <TouchableOpacity 
-      onPress={() => navigation.navigate('PetDetails', { petId: item.id })}
-      style={styles.cardContainer}
-    >
-      <Card>
-        <View style={styles.patientRow}>
-          <Image 
-            source={typeof item.image === 'string' ? { uri: item.image } : item.image} 
-            style={styles.avatar} 
-          />
-          <View style={styles.info}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.breed}>{item.breed}</Text>
-            <Text style={styles.owner}>Tutor: {item.owner}</Text>
+  const renderPatient = ({ item }: { item: any }) => (
+    <TouchableOpacity onPress={() => navigation.navigate('PetDetails', { petId: item.id })}>
+      <Card style={styles.patientCard}>
+        <View style={styles.cardHeader}>
+          <View>
+            <Text style={styles.patientName}>{item.name}</Text>
+            <Text style={styles.patientBreed}>{item.breed} • {item.owner}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-            <Text style={styles.statusText}>
-              {item.status === 'critical' ? 'Crítico' : item.status === 'warning' ? 'Atenção' : 'Estável'}
-            </Text>
+          <View style={[styles.statusIndicator, { backgroundColor: AlertService.getStatusColor(item.status) }]} />
+        </View>
+
+        <View style={styles.vitalsRow}>
+          <View style={styles.vitalBlock}>
+            <MaterialCommunityIcons name="thermometer" size={14} color={theme.colors.textSecondary} />
+            <Text style={styles.vitalText}>{item.temperature}°C</Text>
           </View>
-          <MaterialCommunityIcons name="chevron-right" size={24} color={theme.colors.textSecondary} />
+          <View style={styles.vitalBlock}>
+            <MaterialCommunityIcons name="heart-pulse" size={14} color={theme.colors.textSecondary} />
+            <Text style={styles.vitalText}>{item.heartRate} bpm</Text>
+          </View>
+          <View style={styles.vitalBlock}>
+            <MaterialCommunityIcons name="run" size={14} color={theme.colors.textSecondary} />
+            <Text style={styles.vitalText}>{item.activity}</Text>
+          </View>
         </View>
       </Card>
     </TouchableOpacity>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.title}>Meus Pacientes</Text>
+      </View>
+
+      <View style={styles.searchContainer}>
+        <MaterialCommunityIcons name="magnify" size={20} color={theme.colors.textSecondary} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar por nome ou raça..."
+          value={search}
+          onChangeText={setSearch}
+          placeholderTextColor={theme.colors.textSecondary}
+        />
+      </View>
+
       <FlatList
-        data={patients}
+        data={filteredPatients}
         keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={<Text style={styles.empty}>Nenhum paciente encontrado.</Text>}
+        renderItem={renderPatient}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>Nenhum paciente encontrado.</Text>
+        }
       />
     </View>
   );
@@ -84,60 +109,87 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    paddingTop: 50,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background,
-  },
-  listContent: {
-    padding: theme.spacing.md,
-  },
-  cardContainer: {
-    marginBottom: theme.spacing.sm,
-  },
-  patientRow: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: theme.spacing.md,
+  backButton: {
+    marginRight: theme.spacing.sm,
   },
-  info: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
+  title: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: theme.colors.text,
   },
-  breed: {
-    fontSize: 14,
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.card,
+    marginHorizontal: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.lg,
+    height: 45,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: theme.spacing.sm,
+    color: theme.colors.text,
+    fontSize: 16,
+  },
+  list: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+  },
+  patientCard: {
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: theme.spacing.md,
+  },
+  patientName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
+  patientBreed: {
+    fontSize: 13,
     color: theme.colors.textSecondary,
   },
-  owner: {
+  statusIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  vitalsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    paddingTop: theme.spacing.sm,
+  },
+  vitalBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  vitalText: {
     fontSize: 12,
     color: theme.colors.textSecondary,
-    fontStyle: 'italic',
+    marginLeft: 4,
   },
-  statusBadge: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 2,
-    borderRadius: theme.borderRadius.sm,
-    marginRight: theme.spacing.sm,
-  },
-  statusText: {
-    color: theme.colors.white,
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  empty: {
+  emptyText: {
     textAlign: 'center',
-    marginTop: theme.spacing.xl,
+    marginTop: 50,
     color: theme.colors.textSecondary,
   },
 });

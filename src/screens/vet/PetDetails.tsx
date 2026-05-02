@@ -1,111 +1,271 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Alert as RNAlert } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { InfoCard } from '../../components/InfoCard';
 import { Card } from '../../components/Card';
-import { ApiService, PetStatus } from '../../services/api';
+import { AlertService, RiskLevel, Alert } from '../../services/alertService';
 
-export const PetDetails = ({ route }: any) => {
-  const { petId } = route.params || { petId: '1' };
-  const [pet, setPet] = useState<PetStatus | null>(null);
-  const [loading, setLoading] = useState(true);
+interface PatientDetail extends Patient {
+  owner: string;
+  age: string;
+  weight: string;
+  lastVisit: string;
+}
+
+interface Patient {
+  id: string;
+  name: string;
+  breed: string;
+  heartRate: number;
+  temperature: number;
+  activity: 'Baixa' | 'Média' | 'Alta';
+}
+
+const mockPatients: PatientDetail[] = [
+  { id: '1', name: 'Max', breed: 'Golden Retriever', owner: 'Carlos Silva', heartRate: 140, temperature: 39.5, activity: 'Alta', age: '4 anos', weight: '32kg', lastVisit: '10/04/2026' },
+  { id: '2', name: 'Luna', breed: 'Siamês', owner: 'Ana Oliveira', heartRate: 80, temperature: 38.5, activity: 'Baixa', age: '2 anos', weight: '4kg', lastVisit: '25/03/2026' },
+  { id: '3', name: 'Thor', breed: 'Bulldog', owner: 'João Souza', heartRate: 110, temperature: 38.8, activity: 'Média', age: '3 anos', weight: '12kg', lastVisit: '15/02/2026' },
+  { id: '4', name: 'Bella', breed: 'Poodle', owner: 'Maria Luz', heartRate: 135, temperature: 38.2, activity: 'Média', age: '5 anos', weight: '6kg', lastVisit: '05/04/2026' },
+  { id: '5', name: 'Mike', breed: 'Beagle', owner: 'Pedro Rocha', heartRate: 90, temperature: 39.2, activity: 'Baixa', age: '1 ano', weight: '10kg', lastVisit: '20/03/2026' },
+];
+
+interface HistoryEvent {
+  id: string;
+  date: string;
+  type: 'consulta' | 'vacina' | 'exame' | 'cirurgia';
+  description: string;
+  vet: string;
+}
+
+export const PetDetails = ({ route, navigation }: any) => {
+  const { petId } = route.params;
+  const [pet, setPet] = useState<PatientDetail | null>(null);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [status, setStatus] = useState<RiskLevel>('stable');
+  const [history, setHistory] = useState<HistoryEvent[]>([
+    { id: '1', date: '10/04/2026', type: 'vacina', description: 'Aplicação de reforço da V10 e Raiva.', vet: 'Dra. Marina Silva' },
+    { id: '2', date: '22/03/2026', type: 'exame', description: 'Hemograma completo. Leve anemia detectada.', vet: 'Dr. Ricardo Lima' },
+    { id: '3', date: '15/01/2026', type: 'consulta', description: 'Check-up de rotina. Peso estável.', vet: 'Dra. Marina Silva' },
+  ]);
+
+  // Estados para o Modal
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [newNote, setNewNote] = useState('');
+  const [noteType, setNoteType] = useState<'consulta' | 'vacina' | 'exame' | 'cirurgia'>('consulta');
 
   useEffect(() => {
-    fetchPetDetails();
-  }, []);
-
-  const fetchPetDetails = async () => {
-    try {
-      const data = await ApiService.getPetStatus(petId);
-      setPet(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+    const foundPet = mockPatients.find(p => p.id === petId);
+    if (foundPet) {
+      setPet(foundPet);
+      const vitals = { 
+        temperature: foundPet.temperature, 
+        heartRate: foundPet.heartRate, 
+        activity: foundPet.activity 
+      };
+      setAlerts(AlertService.getVitalsAlerts(vitals));
+      setStatus(AlertService.calculateRiskLevel(vitals));
     }
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-      </View>
-    );
-  }
+  }, [petId]);
 
   if (!pet) return null;
 
-  const history = [
-    { date: '10/04/2026', type: 'Vacina', description: 'Antirrábica aplicada.' },
-    { date: '25/03/2026', type: 'Consulta', description: 'Check-up anual, tudo normal.' },
-    { date: '15/02/2026', type: 'Exame', description: 'Hemograma completo realizado.' },
-  ];
+  const handleAddEvolution = () => {
+    if (!newNote.trim()) {
+      RNAlert.alert('Erro', 'Por favor, descreva a evolução clínica.');
+      return;
+    }
+
+    const today = new Date();
+    const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+
+    const newEvent: HistoryEvent = {
+      id: Math.random().toString(),
+      date: formattedDate,
+      type: noteType,
+      description: newNote,
+      vet: 'Dr. Veterinário (Você)',
+    };
+
+    setHistory([newEvent, ...history]);
+    setIsModalVisible(false);
+    setNewNote('');
+    RNAlert.alert('Sucesso', 'Evolução clínica registrada com sucesso.');
+  };
+
+  const getHistoryIcon = (type: string) => {
+    switch (type) {
+      case 'vacina': return 'needle';
+      case 'exame': return 'test-tube';
+      case 'cirurgia': return 'hospital-building';
+      default: return 'stethoscope';
+    }
+  };
+
+  const renderVitalCard = (label: string, value: string, icon: string, color: string) => (
+    <View style={styles.vitalCardWrapper}>
+      <Card style={styles.vitalCard}>
+        <MaterialCommunityIcons name={icon as any} size={24} color={color} />
+        <Text style={styles.vitalValue}>{value}</Text>
+        <Text style={styles.vitalLabel}>{label}</Text>
+      </Card>
+    </View>
+  );
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Image 
-          source={typeof pet.image === 'string' ? { uri: pet.image } : pet.image} 
-          style={styles.image} 
-        />
-        <View style={styles.headerInfo}>
-          <Text style={styles.name}>{pet.name}</Text>
-          <Text style={styles.breed}>{pet.breed}</Text>
-          <View style={styles.badgeRow}>
-            <View style={styles.badge}><Text style={styles.badgeText}>4 anos</Text></View>
-            <View style={styles.badge}><Text style={styles.badgeText}>32kg</Text></View>
-          </View>
-        </View>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.title}>Ficha Clínica</Text>
       </View>
 
-      <View style={styles.content}>
-        <Text style={styles.sectionTitle}>Sinais Vitais (Real-time)</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <Card style={styles.profileCard}>
+          <View style={styles.profileHeader}>
+            <View style={[styles.statusIndicator, { backgroundColor: AlertService.getStatusColor(status) }]} />
+            <View style={styles.profileInfo}>
+              <Text style={styles.petName}>{pet.name}</Text>
+              <Text style={styles.petBreed}>{pet.breed}</Text>
+            </View>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{status.toUpperCase()}</Text>
+            </View>
+          </View>
+          
+          <View style={styles.detailsGrid}>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Tutor</Text>
+              <Text style={styles.detailValue}>{pet.owner}</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Idade</Text>
+              <Text style={styles.detailValue}>{pet.age}</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Peso</Text>
+              <Text style={styles.detailValue}>{pet.weight}</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Última Visita</Text>
+              <Text style={styles.detailValue}>{pet.lastVisit}</Text>
+            </View>
+          </View>
+        </Card>
+
+        <Text style={styles.sectionTitle}>Sinais Vitais</Text>
         <View style={styles.vitalsGrid}>
-          <InfoCard 
-            label="Temperatura" 
-            value={pet.temperature.toFixed(1)} 
-            unit="°C"
-            iconColor={theme.colors.danger} 
-          />
-          <InfoCard 
-            label="Batimentos" 
-            value={pet.heartRate} 
-            unit="bpm"
-            iconColor={theme.colors.secondary} 
-          />
-          <InfoCard 
-            label="Atividade" 
-            value={pet.activity} 
-            iconColor={theme.colors.success} 
-          />
+          {renderVitalCard('Temperatura', `${pet.temperature}°C`, 'thermometer', theme.colors.danger)}
+          {renderVitalCard('Batimentos', `${pet.heartRate} bpm`, 'heart-pulse', theme.colors.primary)}
+          {renderVitalCard('Atividade', pet.activity, 'run', theme.colors.success)}
         </View>
 
-        <Text style={styles.sectionTitle}>Histórico Clínico</Text>
-        {history.map((item, index) => (
-          <View key={index} style={styles.historyItem}>
-            <Card>
-              <View style={styles.historyRow}>
-                <View style={styles.historyIcon}>
-                  <MaterialCommunityIcons 
-                    name={item.type === 'Vacina' ? 'needle' : item.type === 'Exame' ? 'test-tube' : 'stethoscope'} 
-                    size={24} 
-                    color={theme.colors.primary} 
-                  />
+        {alerts.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Alertas Detectados</Text>
+            {alerts.map((alert) => (
+              <Card key={alert.id} style={[styles.alertCard, { borderLeftColor: AlertService.getStatusColor(alert.severity), borderLeftWidth: 4 }]}>
+                <View style={styles.alertContent}>
+                  <MaterialCommunityIcons name={alert.icon as any} size={24} color={AlertService.getStatusColor(alert.severity)} />
+                  <Text style={styles.alertMessage}>{alert.message}</Text>
                 </View>
-                <View style={styles.historyContent}>
-                  <View style={styles.historyHeader}>
-                    <Text style={styles.historyType}>{item.type}</Text>
-                    <Text style={styles.historyDate}>{item.date}</Text>
-                  </View>
-                  <Text style={styles.historyDesc}>{item.description}</Text>
+              </Card>
+            ))}
+          </>
+        )}
+
+        <View style={styles.historySection}>
+          <Text style={styles.sectionTitle}>Linha do Tempo</Text>
+          {history.map((item, index) => (
+            <View key={item.id} style={styles.timelineItem}>
+              <View style={styles.timelineLeft}>
+                <View style={[styles.timelineIcon, { backgroundColor: theme.colors.primary + '15' }]}>
+                  <MaterialCommunityIcons name={getHistoryIcon(item.type) as any} size={20} color={theme.colors.primary} />
                 </View>
+                {index !== history.length - 1 && <View style={styles.timelineLine} />}
               </View>
-            </Card>
+              <View style={styles.timelineContent}>
+                <View style={styles.timelineHeader}>
+                  <Text style={styles.timelineDate}>{item.date}</Text>
+                  <Text style={styles.timelineType}>{item.type.toUpperCase()}</Text>
+                </View>
+                <Text style={styles.timelineDesc}>{item.description}</Text>
+                <Text style={styles.timelineVet}>{item.vet}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={() => setIsModalVisible(true)}
+        >
+          <MaterialCommunityIcons name="pencil-outline" size={20} color={theme.colors.white} />
+          <Text style={styles.actionButtonText}>Nova Evolução Clínica</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      {/* Modal para Nova Evolução */}
+      <Modal
+        visible={isModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Nova Evolução Clínica</Text>
+              <TouchableOpacity onPress={() => setIsModalVisible(false)}>
+                <MaterialCommunityIcons name="close" size={24} color={theme.colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.inputLabel}>Tipo de Atendimento</Text>
+            <View style={styles.typeSelector}>
+              {(['consulta', 'vacina', 'exame', 'cirurgia'] as const).map((type) => (
+                <TouchableOpacity 
+                  key={type}
+                  style={[
+                    styles.typeChip, 
+                    noteType === type && { backgroundColor: theme.colors.primary }
+                  ]}
+                  onPress={() => setNoteType(type)}
+                >
+                  <Text style={[
+                    styles.typeChipText,
+                    noteType === type && { color: theme.colors.white }
+                  ]}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.inputLabel}>Observações Clínicas</Text>
+            <TextInput
+              style={styles.textInput}
+              multiline
+              numberOfLines={4}
+              placeholder="Descreva aqui o estado do pet, procedimentos realizados ou orientações..."
+              value={newNote}
+              onChangeText={setNewNote}
+              placeholderTextColor={theme.colors.textSecondary}
+            />
+
+            <TouchableOpacity 
+              style={styles.saveButton}
+              onPress={handleAddEvolution}
+            >
+              <Text style={styles.saveButtonText}>Salvar Evolução</Text>
+            </TouchableOpacity>
           </View>
-        ))}
-      </View>
-    </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+    </View>
   );
 };
 
@@ -113,106 +273,268 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background,
+    paddingTop: 50,
   },
   header: {
     flexDirection: 'row',
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: theme.borderRadius.lg,
+  backButton: {
+    marginRight: theme.spacing.sm,
   },
-  headerInfo: {
-    flex: 1,
-    marginLeft: theme.spacing.lg,
-    justifyContent: 'center',
-  },
-  name: {
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: theme.colors.text,
   },
-  breed: {
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.sm,
+  scrollContent: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
   },
-  badgeRow: {
+  profileCard: {
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+  },
+  profileHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  statusIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: theme.spacing.md,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  petName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
+  petBreed: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
   },
   badge: {
-    backgroundColor: theme.colors.primary + '20',
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 2,
-    borderRadius: theme.borderRadius.sm,
-    marginRight: theme.spacing.sm,
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
   },
   badgeText: {
-    color: theme.colors.primary,
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
+    color: theme.colors.textSecondary,
   },
-  content: {
-    padding: theme.spacing.lg,
+  detailsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    paddingTop: theme.spacing.md,
+  },
+  detailItem: {
+    width: '50%',
+    marginBottom: theme.spacing.sm,
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+  },
+  detailValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.text,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
-    marginTop: theme.spacing.sm,
+    marginTop: theme.spacing.md,
   },
   vitalsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
   },
-  historyItem: {
+  vitalCardWrapper: {
+    width: '31%',
+  },
+  vitalCard: {
+    alignItems: 'center',
+    padding: theme.spacing.md,
+    marginBottom: 0,
+  },
+  vitalValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginTop: 8,
+  },
+  vitalLabel: {
+    fontSize: 10,
+    color: theme.colors.textSecondary,
+  },
+  alertCard: {
     marginBottom: theme.spacing.sm,
+    padding: theme.spacing.md,
   },
-  historyRow: {
+  alertContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  historyIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.background,
-    justifyContent: 'center',
+  alertMessage: {
+    fontSize: 14,
+    color: theme.colors.text,
+    marginLeft: theme.spacing.md,
+    flex: 1,
+  },
+  historySection: {
+    marginTop: theme.spacing.md,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    marginBottom: theme.spacing.md,
+  },
+  timelineLeft: {
     alignItems: 'center',
     marginRight: theme.spacing.md,
   },
-  historyContent: {
-    flex: 1,
+  timelineIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
   },
-  historyHeader: {
+  timelineLine: {
+    width: 2,
+    flex: 1,
+    backgroundColor: theme.colors.border,
+    marginTop: -2,
+  },
+  timelineContent: {
+    flex: 1,
+    paddingBottom: theme.spacing.md,
+  },
+  timelineHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  historyType: {
-    fontSize: 14,
+  timelineDate: {
+    fontSize: 12,
     fontWeight: 'bold',
     color: theme.colors.text,
   },
-  historyDate: {
+  timelineType: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+  },
+  timelineDesc: {
+    fontSize: 14,
+    color: theme.colors.text,
+    marginBottom: 2,
+  },
+  timelineVet: {
     fontSize: 12,
     color: theme.colors.textSecondary,
+    fontStyle: 'italic',
   },
-  historyDesc: {
-    fontSize: 13,
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    marginTop: theme.spacing.lg,
+  },
+  actionButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: theme.spacing.sm,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: theme.colors.card,
+    borderTopLeftRadius: theme.borderRadius.lg,
+    borderTopRightRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    paddingBottom: Platform.OS === 'ios' ? 40 : theme.spacing.lg,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: theme.spacing.lg,
+  },
+  typeChip: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: theme.colors.background,
+    marginRight: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  typeChipText: {
+    fontSize: 12,
     color: theme.colors.textSecondary,
+    fontWeight: '500',
+  },
+  textInput: {
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    color: theme.colors.text,
+    fontSize: 14,
+    textAlignVertical: 'top',
+    height: 120,
+    marginBottom: theme.spacing.xl,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  saveButton: {
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

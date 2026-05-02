@@ -16,7 +16,6 @@ export const Card = ({ children, style }: CardProps) => {
       { 
         backgroundColor: theme.colors.card,
         borderRadius: theme.borderRadius.lg,
-        // No dark mode, shadows are often replaced by subtle borders or slightly lighter backgrounds
         shadowOpacity: isDark ? 0 : 0.08, 
         borderWidth: isDark ? 1 : 0,
         borderColor: theme.colors.border,
