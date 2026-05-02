@@ -41,4 +41,6 @@ yarn-error.*
 /android
 
 
+# Tooling
 GEMINI.md
+.gemini/

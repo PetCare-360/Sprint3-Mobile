@@ -4,7 +4,7 @@ Este arquivo registra o progresso da implementação da área do veterinário no
 
 ## Progresso da Área Vet
 - [x] **Etapa 1:** Estrutura de pastas e Tela de Login (`SignIn`).
-- [ ] **Etapa 2:** Serviços de Autenticação e Persistência Local.
+- [x] **Etapa 2:** Serviços de Autenticação e Persistência Local.
 - [ ] **Etapa 3:** Fluxo de Navegação Condicional (AuthStack vs VetStack vs TutorStack).
 - [ ] **Etapa 4:** Dashboard do Veterinário e Lista de Pacientes.
 - [ ] **Etapa 5:** Tela de Detalhes do Pet (Visão do Veterinário).
