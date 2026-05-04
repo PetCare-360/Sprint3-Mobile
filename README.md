@@ -129,11 +129,14 @@ A aplicação gerencia múltiplos fluxos de acesso garantindo segurança e segme
 - **Interface Orientada à Decisão:** Veterinários recebem priorização de pacientes que realmente precisam de atenção imediata.
 - **Offline First (Básico):** Uso de cache local para garantir que dados essenciais estejam disponíveis mesmo sem conexão.
 
+## Link Youtube
+[Demonstração Vídeo](https://)
+
 ## Autores
 Artur Correia - [GitHub](https://github.com/artcorreia)<br>
 Gabriel H - [GitHub](https://github.com/gabrielhensg)<br>
 Josè Ricardo - [GitHub](https://github.com/jr-iannuzzi)<br> 
-Rafael de Freitas - [GitHub](https://github.com/devfreita)<br> 
+Rafael de Freitas - [GitHub](https://github.com/devfreitas)<br> 
 Rafael Pascotte - [GitHub](https://github.com/pascotterafaaa)
 
 ## Licença
