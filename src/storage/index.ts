@@ -10,6 +10,7 @@ export interface PetData {
   breed: string;
   age: string;
   weight: string;
+  ownerName?: string;
   image?: string | null;
 }
 
@@ -18,17 +19,13 @@ export const StorageService = {
     try {
       const jsonValue = JSON.stringify(data);
       await AsyncStorage.setItem(KEYS.PET_DATA, jsonValue);
-    } catch (e) {
-      console.error('Error saving pet data', e);
-    }
-  },
+    } catch {}},
 
   async getPetData(): Promise<PetData | null> {
     try {
       const jsonValue = await AsyncStorage.getItem(KEYS.PET_DATA);
       return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (e) {
-      console.error('Error getting pet data', e);
+    } catch {
       return null;
     }
   },
@@ -36,8 +33,5 @@ export const StorageService = {
   async clearAll(): Promise<void> {
     try {
       await AsyncStorage.clear();
-    } catch (e) {
-      console.error('Error clearing storage', e);
-    }
-  }
+    } catch {}}
 };

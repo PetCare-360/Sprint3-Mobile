@@ -1,33 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Alert as RNAlert } from 'react-native';
-import { theme } from '../../theme';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Alert as RNAlert, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '../../components/Card';
-import { AlertService, RiskLevel, Alert } from '../../services/alertService';
+import { Header } from '../../components/Header';
+import { AlertService } from '../../services/alertService';
+import { PatientService } from '../../services/patientService';
+import { useTheme } from '../../hooks/useTheme';
+import { Pet, RiskLevel, VitalSigns } from '../../types/pet';
+import { Alert } from '../../services/alertService';
 
-interface PatientDetail extends Patient {
-  owner: string;
+interface PatientDetail extends Pet {
+  phone: string;
   age: string;
   weight: string;
-  lastVisit: string;
 }
 
-interface Patient {
-  id: string;
-  name: string;
-  breed: string;
-  heartRate: number;
-  temperature: number;
-  activity: 'Baixa' | 'Média' | 'Alta';
-}
-
-const mockPatients: PatientDetail[] = [
-  { id: '1', name: 'Max', breed: 'Golden Retriever', owner: 'Carlos Silva', heartRate: 140, temperature: 39.5, activity: 'Alta', age: '4 anos', weight: '32kg', lastVisit: '10/04/2026' },
-  { id: '2', name: 'Luna', breed: 'Siamês', owner: 'Ana Oliveira', heartRate: 80, temperature: 38.5, activity: 'Baixa', age: '2 anos', weight: '4kg', lastVisit: '25/03/2026' },
-  { id: '3', name: 'Thor', breed: 'Bulldog', owner: 'João Souza', heartRate: 110, temperature: 38.8, activity: 'Média', age: '3 anos', weight: '12kg', lastVisit: '15/02/2026' },
-  { id: '4', name: 'Bella', breed: 'Poodle', owner: 'Maria Luz', heartRate: 135, temperature: 38.2, activity: 'Média', age: '5 anos', weight: '6kg', lastVisit: '05/04/2026' },
-  { id: '5', name: 'Mike', breed: 'Beagle', owner: 'Pedro Rocha', heartRate: 90, temperature: 39.2, activity: 'Baixa', age: '1 ano', weight: '10kg', lastVisit: '20/03/2026' },
-];
+const mockExtraInfo = {
+  phone: '(11) 98765-4321',
+  age: '4 anos',
+  weight: '32kg',
+};
 
 interface HistoryEvent {
   id: string;
@@ -42,29 +34,34 @@ export const PetDetails = ({ route, navigation }: any) => {
   const [pet, setPet] = useState<PatientDetail | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [status, setStatus] = useState<RiskLevel>('stable');
+  const { colors, radius } = useTheme();
+  
   const [history, setHistory] = useState<HistoryEvent[]>([
     { id: '1', date: '10/04/2026', type: 'vacina', description: 'Aplicação de reforço da V10 e Raiva.', vet: 'Dra. Marina Silva' },
     { id: '2', date: '22/03/2026', type: 'exame', description: 'Hemograma completo. Leve anemia detectada.', vet: 'Dr. Ricardo Lima' },
     { id: '3', date: '15/01/2026', type: 'consulta', description: 'Check-up de rotina. Peso estável.', vet: 'Dra. Marina Silva' },
   ]);
 
-  // Estados para o Modal
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [noteType, setNoteType] = useState<'consulta' | 'vacina' | 'exame' | 'cirurgia'>('consulta');
 
   useEffect(() => {
-    const foundPet = mockPatients.find(p => p.id === petId);
-    if (foundPet) {
-      setPet(foundPet);
-      const vitals = { 
-        temperature: foundPet.temperature, 
-        heartRate: foundPet.heartRate, 
-        activity: foundPet.activity 
-      };
-      setAlerts(AlertService.getVitalsAlerts(vitals));
-      setStatus(AlertService.calculateRiskLevel(vitals));
+    async function loadPet() {
+      const patients = await PatientService.getPatients();
+      const found = patients.find(p => p.id === petId);
+      if (found) {
+        setPet({ ...found, ...mockExtraInfo });
+        const vitals: VitalSigns = { 
+          temperature: found.temperature, 
+          heartRate: found.heartRate, 
+          activity: found.activity 
+        };
+        setAlerts(AlertService.getVitalsAlerts(vitals));
+        setStatus(AlertService.calculateRiskLevel(vitals));
+      }
     }
+    loadPet();
   }, [petId]);
 
   if (!pet) return null;
@@ -105,69 +102,64 @@ export const PetDetails = ({ route, navigation }: any) => {
     <View style={styles.vitalCardWrapper}>
       <Card style={styles.vitalCard}>
         <MaterialCommunityIcons name={icon as any} size={24} color={color} />
-        <Text style={styles.vitalValue}>{value}</Text>
-        <Text style={styles.vitalLabel}>{label}</Text>
+        <Text style={[styles.vitalValue, { color: colors.text }]}>{value}</Text>
+        <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>{label}</Text>
       </Card>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Ficha Clínica</Text>
-      </View>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Header title="Ficha Clínica" showBack onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Card style={styles.profileCard}>
+        <Card style={styles.profileCard} variant="elevated">
           <View style={styles.profileHeader}>
-            <View style={[styles.statusIndicator, { backgroundColor: AlertService.getStatusColor(status) }]} />
+            <Image source={pet.image} style={[styles.petImage, { borderRadius: radius.lg }]} />
             <View style={styles.profileInfo}>
-              <Text style={styles.petName}>{pet.name}</Text>
-              <Text style={styles.petBreed}>{pet.breed}</Text>
-            </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{status.toUpperCase()}</Text>
+              <Text style={[styles.petName, { color: colors.text }]}>{pet.name}</Text>
+              <Text style={[styles.petBreed, { color: colors.textSecondary }]}>{pet.breed}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: AlertService.getStatusColor(status) + '20' }]}>
+                <Text style={[styles.statusText, { color: AlertService.getStatusColor(status) }]}>{status.toUpperCase()}</Text>
+              </View>
             </View>
           </View>
           
-          <View style={styles.detailsGrid}>
+          <View style={[styles.detailsGrid, { borderTopColor: colors.border }]}>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Tutor</Text>
-              <Text style={styles.detailValue}>{pet.owner}</Text>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Tutor</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>{pet.owner}</Text>
             </View>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Idade</Text>
-              <Text style={styles.detailValue}>{pet.age}</Text>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Telefone</Text>
+              <Text style={[styles.detailValue, { color: colors.primary }]}>{pet.phone}</Text>
             </View>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Peso</Text>
-              <Text style={styles.detailValue}>{pet.weight}</Text>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Idade</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>{pet.age}</Text>
             </View>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Última Visita</Text>
-              <Text style={styles.detailValue}>{pet.lastVisit}</Text>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Peso</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>{pet.weight}</Text>
             </View>
           </View>
         </Card>
 
-        <Text style={styles.sectionTitle}>Sinais Vitais</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Sinais Vitais</Text>
         <View style={styles.vitalsGrid}>
-          {renderVitalCard('Temperatura', `${pet.temperature}°C`, 'thermometer', theme.colors.danger)}
-          {renderVitalCard('Batimentos', `${pet.heartRate} bpm`, 'heart-pulse', theme.colors.primary)}
-          {renderVitalCard('Atividade', pet.activity, 'run', theme.colors.success)}
+          {renderVitalCard('Temperatura', `${pet.temperature.toFixed(1)}°C`, 'thermometer', colors.danger)}
+          {renderVitalCard('Batimentos', `${pet.heartRate} bpm`, 'heart-pulse', colors.primary)}
+          {renderVitalCard('Atividade', pet.activity, 'run', colors.success)}
         </View>
 
         {alerts.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Alertas Detectados</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Alertas Detectados</Text>
             {alerts.map((alert) => (
               <Card key={alert.id} style={[styles.alertCard, { borderLeftColor: AlertService.getStatusColor(alert.severity), borderLeftWidth: 4 }]}>
                 <View style={styles.alertContent}>
                   <MaterialCommunityIcons name={alert.icon as any} size={24} color={AlertService.getStatusColor(alert.severity)} />
-                  <Text style={styles.alertMessage}>{alert.message}</Text>
+                  <Text style={[styles.alertMessage, { color: colors.text }]}>{alert.message}</Text>
                 </View>
               </Card>
             ))}
@@ -175,37 +167,36 @@ export const PetDetails = ({ route, navigation }: any) => {
         )}
 
         <View style={styles.historySection}>
-          <Text style={styles.sectionTitle}>Linha do Tempo</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Linha do Tempo</Text>
           {history.map((item, index) => (
             <View key={item.id} style={styles.timelineItem}>
               <View style={styles.timelineLeft}>
-                <View style={[styles.timelineIcon, { backgroundColor: theme.colors.primary + '15' }]}>
-                  <MaterialCommunityIcons name={getHistoryIcon(item.type) as any} size={20} color={theme.colors.primary} />
+                <View style={[styles.timelineIcon, { backgroundColor: colors.primary + '15' }]}>
+                  <MaterialCommunityIcons name={getHistoryIcon(item.type) as any} size={20} color={colors.primary} />
                 </View>
-                {index !== history.length - 1 && <View style={styles.timelineLine} />}
+                {index !== history.length - 1 && <View style={[styles.timelineLine, { backgroundColor: colors.border }]} />}
               </View>
               <View style={styles.timelineContent}>
                 <View style={styles.timelineHeader}>
-                  <Text style={styles.timelineDate}>{item.date}</Text>
-                  <Text style={styles.timelineType}>{item.type.toUpperCase()}</Text>
+                  <Text style={[styles.timelineDate, { color: colors.text }]}>{item.date}</Text>
+                  <Text style={[styles.timelineType, { color: colors.primary }]}>{item.type.toUpperCase()}</Text>
                 </View>
-                <Text style={styles.timelineDesc}>{item.description}</Text>
-                <Text style={styles.timelineVet}>{item.vet}</Text>
+                <Text style={[styles.timelineDesc, { color: colors.text }]}>{item.description}</Text>
+                <Text style={[styles.timelineVet, { color: colors.textSecondary }]}>{item.vet}</Text>
               </View>
             </View>
           ))}
         </View>
 
         <TouchableOpacity 
-          style={styles.actionButton}
+          style={[styles.actionButton, { backgroundColor: colors.primary }]}
           onPress={() => setIsModalVisible(true)}
         >
-          <MaterialCommunityIcons name="pencil-outline" size={20} color={theme.colors.white} />
+          <MaterialCommunityIcons name="pencil-outline" size={20} color={colors.white} />
           <Text style={styles.actionButtonText}>Nova Evolução Clínica</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Modal para Nova Evolução */}
       <Modal
         visible={isModalVisible}
         animationType="slide"
@@ -216,28 +207,30 @@ export const PetDetails = ({ route, navigation }: any) => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalContainer}
         >
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Nova Evolução Clínica</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Nova Evolução Clínica</Text>
               <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-                <MaterialCommunityIcons name="close" size={24} color={theme.colors.text} />
+                <MaterialCommunityIcons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.inputLabel}>Tipo de Atendimento</Text>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>Tipo de Atendimento</Text>
             <View style={styles.typeSelector}>
               {(['consulta', 'vacina', 'exame', 'cirurgia'] as const).map((type) => (
                 <TouchableOpacity 
                   key={type}
                   style={[
                     styles.typeChip, 
-                    noteType === type && { backgroundColor: theme.colors.primary }
+                    { backgroundColor: colors.background, borderColor: colors.border },
+                    noteType === type && { backgroundColor: colors.primary, borderColor: colors.primary }
                   ]}
                   onPress={() => setNoteType(type)}
                 >
                   <Text style={[
                     styles.typeChipText,
-                    noteType === type && { color: theme.colors.white }
+                    { color: colors.textSecondary },
+                    noteType === type && { color: colors.white }
                   ]}>
                     {type.charAt(0).toUpperCase() + type.slice(1)}
                   </Text>
@@ -245,19 +238,19 @@ export const PetDetails = ({ route, navigation }: any) => {
               ))}
             </View>
 
-            <Text style={styles.inputLabel}>Observações Clínicas</Text>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>Observações Clínicas</Text>
             <TextInput
-              style={styles.textInput}
+              style={[styles.textInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
               multiline
               numberOfLines={4}
               placeholder="Descreva aqui o estado do pet, procedimentos realizados ou orientações..."
               value={newNote}
               onChangeText={setNewNote}
-              placeholderTextColor={theme.colors.textSecondary}
+              placeholderTextColor={colors.textSecondary}
             />
 
             <TouchableOpacity 
-              style={styles.saveButton}
+              style={[styles.saveButton, { backgroundColor: colors.primary }]}
               onPress={handleAddEvolution}
             >
               <Text style={styles.saveButtonText}>Salvar Evolução</Text>
@@ -272,41 +265,25 @@ export const PetDetails = ({ route, navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
-    paddingTop: 50,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
-  },
-  backButton: {
-    marginRight: theme.spacing.sm,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text,
   },
   scrollContent: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    marginTop: 16,
   },
   profileCard: {
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
+    padding: 16,
+    marginBottom: 20,
   },
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.lg,
+    marginBottom: 20,
   },
-  statusIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: theme.spacing.md,
+  petImage: {
+    width: 80,
+    height: 80,
+    marginRight: 16,
   },
   profileInfo: {
     flex: 1,
@@ -314,76 +291,68 @@ const styles = StyleSheet.create({
   petName: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: theme.colors.text,
   },
   petBreed: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
+    marginBottom: 4,
   },
-  badge: {
-    backgroundColor: theme.colors.background,
+  statusBadge: {
+    alignSelf: 'flex-start',
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
-  badgeText: {
+  statusText: {
     fontSize: 10,
-    fontWeight: 'bold',
-    color: theme.colors.textSecondary,
+    fontWeight: '800',
   },
   detailsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-    paddingTop: theme.spacing.md,
+    paddingTop: 16,
   },
   detailItem: {
     width: '50%',
-    marginBottom: theme.spacing.sm,
+    marginBottom: 12,
   },
   detailLabel: {
     fontSize: 12,
-    color: theme.colors.textSecondary,
   },
   detailValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: theme.colors.text,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-    marginTop: theme.spacing.md,
+    marginBottom: 16,
+    marginTop: 8,
   },
   vitalsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.lg,
+    marginBottom: 20,
   },
   vitalCardWrapper: {
     width: '31%',
   },
   vitalCard: {
     alignItems: 'center',
-    padding: theme.spacing.md,
+    padding: 12,
     marginBottom: 0,
   },
   vitalValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: theme.colors.text,
     marginTop: 8,
   },
   vitalLabel: {
     fontSize: 10,
-    color: theme.colors.textSecondary,
   },
   alertCard: {
-    marginBottom: theme.spacing.sm,
-    padding: theme.spacing.md,
+    marginBottom: 8,
+    padding: 16,
   },
   alertContent: {
     flexDirection: 'row',
@@ -391,20 +360,19 @@ const styles = StyleSheet.create({
   },
   alertMessage: {
     fontSize: 14,
-    color: theme.colors.text,
-    marginLeft: theme.spacing.md,
+    marginLeft: 12,
     flex: 1,
   },
   historySection: {
-    marginTop: theme.spacing.md,
+    marginTop: 8,
   },
   timelineItem: {
     flexDirection: 'row',
-    marginBottom: theme.spacing.md,
+    marginBottom: 16,
   },
   timelineLeft: {
     alignItems: 'center',
-    marginRight: theme.spacing.md,
+    marginRight: 16,
   },
   timelineIcon: {
     width: 36,
@@ -417,12 +385,11 @@ const styles = StyleSheet.create({
   timelineLine: {
     width: 2,
     flex: 1,
-    backgroundColor: theme.colors.border,
     marginTop: -2,
   },
   timelineContent: {
     flex: 1,
-    paddingBottom: theme.spacing.md,
+    paddingBottom: 16,
   },
   timelineHeader: {
     flexDirection: 'row',
@@ -433,37 +400,32 @@ const styles = StyleSheet.create({
   timelineDate: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: theme.colors.text,
   },
   timelineType: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: theme.colors.primary,
   },
   timelineDesc: {
     fontSize: 14,
-    color: theme.colors.text,
     marginBottom: 2,
   },
   timelineVet: {
     fontSize: 12,
-    color: theme.colors.textSecondary,
     fontStyle: 'italic',
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.primary,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    marginTop: theme.spacing.lg,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
   },
   actionButtonText: {
-    color: theme.colors.white,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
-    marginLeft: theme.spacing.sm,
+    marginLeft: 8,
   },
   modalContainer: {
     flex: 1,
@@ -471,69 +433,59 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    backgroundColor: theme.colors.card,
-    borderTopLeftRadius: theme.borderRadius.lg,
-    borderTopRightRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? 40 : theme.spacing.lg,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.lg,
+    marginBottom: 24,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: theme.colors.text,
   },
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
+    marginBottom: 8,
   },
   typeSelector: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: theme.spacing.lg,
+    marginBottom: 24,
   },
   typeChip: {
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: theme.colors.background,
-    marginRight: theme.spacing.sm,
-    marginBottom: theme.spacing.sm,
+    marginRight: 8,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: theme.colors.border,
   },
   typeChipText: {
     fontSize: 12,
-    color: theme.colors.textSecondary,
     fontWeight: '500',
   },
   textInput: {
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    color: theme.colors.text,
+    borderRadius: 12,
+    padding: 16,
     fontSize: 14,
     textAlignVertical: 'top',
     height: 120,
-    marginBottom: theme.spacing.xl,
+    marginBottom: 32,
     borderWidth: 1,
-    borderColor: theme.colors.border,
   },
   saveButton: {
-    backgroundColor: theme.colors.primary,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
   },
   saveButtonText: {
-    color: theme.colors.white,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },

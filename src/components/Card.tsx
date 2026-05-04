@@ -1,25 +1,46 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, Platform, StyleProp } from 'react-native';
-import { useAppTheme } from '../context/ThemeContext';
+import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { useTheme } from '../hooks/useTheme';
 
 interface CardProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  variant?: 'elevated' | 'outlined' | 'flat';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
-export const Card = ({ children, style }: CardProps) => {
-  const { theme, isDark } = useAppTheme();
+export const Card = ({ 
+  children, 
+  style, 
+  variant = 'elevated',
+  padding = 'md' 
+}: CardProps) => {
+  const { colors, radius, shadows, spacing, isDark } = useTheme();
+
+  const getVariantStyle = () => {
+    switch (variant) {
+      case 'elevated':
+        return isDark 
+          ? { borderWidth: 1, borderColor: colors.border } 
+          : { ...shadows.md };
+      case 'outlined':
+        return { borderWidth: 1, borderColor: colors.border };
+      case 'flat':
+        return { backgroundColor: isDark ? colors.surface : colors.gray100 };
+      default:
+        return {};
+    }
+  };
 
   return (
     <View style={[
       styles.card, 
       { 
-        backgroundColor: theme.colors.card,
-        borderRadius: theme.borderRadius.lg,
-        shadowOpacity: isDark ? 0 : 0.08, 
-        borderWidth: isDark ? 1 : 0,
-        borderColor: theme.colors.border,
+        backgroundColor: colors.card,
+        borderRadius: radius.xl,
+        padding: spacing[padding],
       }, 
+      getVariantStyle(),
       style
     ]}>
       {children}
@@ -29,17 +50,7 @@ export const Card = ({ children, style }: CardProps) => {
 
 const styles = StyleSheet.create({
   card: {
-    padding: 16,
     marginBottom: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
+    overflow: 'hidden',
   },
 });

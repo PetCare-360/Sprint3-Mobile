@@ -13,32 +13,24 @@ import { VetStack } from './VetStack';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import { useAppTheme } from '../context/ThemeContext';
+import { useTheme } from '../hooks/useTheme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const TutorTabs = () => {
-  const { theme } = useAppTheme();
+  const { colors } = useTheme();
   
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textSecondary,
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: { 
-          backgroundColor: theme.colors.card,
-          borderTopColor: theme.colors.border,
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
         },
-        headerStyle: { 
-          backgroundColor: theme.colors.card,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        headerTintColor: theme.colors.text,
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        }
       }}
     >
       <Tab.Screen 
@@ -96,15 +88,13 @@ const TutorTabs = () => {
 };
 
 export const AppNavigator = () => {
-  const { user, loading: authLoading } = useAuth();
-  // ThemeProvider finishes loading immediately after its own useEffect, 
-  // but for the sake of simplicity and robustness, we check authLoading.
-  // ThemeContextData doesn't have a loading state.
+  const { user, loading } = useAuth();
+  const { colors } = useTheme();
 
-  if (authLoading) {
+  if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F2F2F7' }}>
-        <ActivityIndicator size="large" color="#6C63FF" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }

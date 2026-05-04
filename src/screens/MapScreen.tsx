@@ -1,78 +1,90 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import { ApiService, PetStatus } from '../services/api';
+import { View, Text, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { Card } from '../components/Card';
-import { useAppTheme } from '../context/ThemeContext';
+import { Header } from '../components/Header';
+import { ApiService, PetStatus } from '../services/api';
+import { StorageService, PetData } from '../storage';
+import { useTheme } from '../hooks/useTheme';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const MapScreen = () => {
-  const { theme, isDark } = useAppTheme();
   const [status, setStatus] = useState<PetStatus | null>(null);
+  const [localPet, setLocalPet] = useState<PetData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { colors } = useTheme();
 
-  useEffect(() => {
-    loadStatus();
-  }, []);
-
-  const loadStatus = async () => {
-    try {
-      const data = await ApiService.getPetStatus();
-      setStatus(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+  const loadData = async () => {
+    setLoading(true);
+    const [apiStatus, storedPet] = await Promise.all([
+      ApiService.getPetStatus('1'),
+      StorageService.getPetData()
+    ]);
+    setStatus(apiStatus);
+    setLocalPet(storedPet);
+    setLoading(false);
   };
 
-  if (loading || !status) {
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+    }, [])
+  );
+
+  if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
+  const petImage = localPet?.image 
+    ? { uri: `data:image/png;base64,${localPet.image}` }
+    : status?.image;
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <Header title="Mapa" />
       <MapView
-        provider={PROVIDER_GOOGLE}
         style={styles.map}
-        initialRegion={status.location}
-        customMapStyle={isDark ? darkMapStyle : []}
+        initialRegion={status?.location}
       >
-        <Marker coordinate={status.location}>
-          <View style={styles.markerContainer}>
-            <View style={[styles.markerBadge, { backgroundColor: theme.colors.primary }]}>
-              <Icon name="dog" size={24} color="#FFF" />
+        {status?.location && (
+          <Marker coordinate={status.location}>
+            <View style={[styles.markerBadge, { backgroundColor: colors.primary, overflow: 'hidden' }]}>
+              {petImage ? (
+                <Image source={petImage} style={styles.markerPetImage} />
+              ) : (
+                <Icon name="dog" size={20} color="white" />
+              )}
             </View>
-            <View style={[styles.markerArrow, { borderBottomColor: theme.colors.primary }]} />
-          </View>
-        </Marker>
+            <View style={[styles.markerArrow, { borderBottomColor: colors.primary }]} />
+          </Marker>
+        )}
       </MapView>
-
-      <View style={styles.overlay}>
-        <Card style={styles.statusCard}>
+      
+      <View style={styles.statusOverlay}>
+        <Card style={styles.statusCard} variant="elevated">
           <View style={styles.statusRow}>
             <View style={styles.statusItem}>
-              <View style={[styles.iconBox, { backgroundColor: theme.colors.primary + '15' }]}>
-                <Icon name="map-marker-radius" size={20} color={theme.colors.primary} />
+              <View style={[styles.iconBox, { backgroundColor: colors.primary + '15' }]}>
+                <Icon name="map-marker-radius" size={20} color={colors.primary} />
               </View>
-              <View>
-                <Text style={[styles.statusLabel, { color: theme.colors.textSecondary }]}>Localização</Text>
-                <Text style={[styles.statusValue, { color: theme.colors.text }]}>Centro, SP</Text>
+              <View style={styles.statusText}>
+                <Text style={[styles.statusLabel, { color: colors.textSecondary }]}>Localização</Text>
+                <Text style={[styles.statusValue, { color: colors.text }]}>Centro, SP</Text>
               </View>
             </View>
-            <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
             <View style={styles.statusItem}>
-              <View style={[styles.iconBox, { backgroundColor: theme.colors.success + '15' }]}>
-                <Icon name="battery-80" size={20} color={theme.colors.success} />
+              <View style={[styles.iconBox, { backgroundColor: colors.success + '15' }]}>
+                <Icon name="battery-80" size={20} color={colors.success} />
               </View>
-              <View>
-                <Text style={[styles.statusLabel, { color: theme.colors.textSecondary }]}>Bateria</Text>
-                <Text style={[styles.statusValue, { color: theme.colors.text }]}>{status.battery}%</Text>
+              <View style={styles.statusText}>
+                <Text style={[styles.statusLabel, { color: colors.textSecondary }]}>Bateria</Text>
+                <Text style={[styles.statusValue, { color: colors.text }]}>{status?.battery}%</Text>
               </View>
             </View>
           </View>
@@ -81,27 +93,6 @@ export const MapScreen = () => {
     </View>
   );
 };
-
-const darkMapStyle = [
-  { "elementType": "geometry", "stylers": [{ "color": "#242f3e" }] },
-  { "elementType": "labels.text.fill", "stylers": [{ "color": "#746855" }] },
-  { "elementType": "labels.text.stroke", "stylers": [{ "color": "#242f3e" }] },
-  { "featureType": "administrative.locality", "elementType": "labels.text.fill", "stylers": [{ "color": "#d59563" }] },
-  { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#d59563" }] },
-  { "featureType": "poi.park", "elementType": "geometry", "stylers": [{ "color": "#263c3f" }] },
-  { "featureType": "poi.park", "elementType": "labels.text.fill", "stylers": [{ "color": "#6b9a76" }] },
-  { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#38414e" }] },
-  { "featureType": "road", "elementType": "geometry.stroke", "stylers": [{ "color": "#212a37" }] },
-  { "featureType": "road", "elementType": "labels.text.fill", "stylers": [{ "color": "#9ca5b3" }] },
-  { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#746855" }] },
-  { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [{ "color": "#1f2835" }] },
-  { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [{ "color": "#f3d19c" }] },
-  { "featureType": "transit", "elementType": "geometry", "stylers": [{ "color": "#2f3948" }] },
-  { "featureType": "transit.station", "elementType": "labels.text.fill", "stylers": [{ "color": "#d59563" }] },
-  { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#17263c" }] },
-  { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#515c6d" }] },
-  { "featureType": "water", "elementType": "labels.text.stroke", "stylers": [{ "color": "#17263c" }] }
-];
 
 const styles = StyleSheet.create({
   container: {
@@ -113,23 +104,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   map: {
-    width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height,
-  },
-  markerContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    flex: 1,
   },
   markerBadge: {
-    padding: 8,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 3,
-    borderColor: '#FFF',
+    borderColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  markerPetImage: {
+    width: 40,
+    height: 40,
   },
   markerArrow: {
     width: 0,
@@ -141,45 +134,49 @@ const styles = StyleSheet.create({
     borderBottomWidth: 12,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
+    alignSelf: 'center',
     transform: [{ rotate: '180deg' }],
     marginTop: -2,
   },
-  overlay: {
+  statusOverlay: {
     position: 'absolute',
-    bottom: 40,
-    left: 20,
-    right: 20,
+    bottom: 32,
+    left: 24,
+    right: 24,
   },
   statusCard: {
     padding: 16,
-    borderRadius: 20,
+    marginBottom: 0,
   },
   statusRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   statusItem: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
   iconBox: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
+  statusText: {
+    flex: 1,
+  },
   statusLabel: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   statusValue: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginTop: 1,
   },
   divider: {
     width: 1,

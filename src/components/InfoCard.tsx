@@ -1,69 +1,89 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useAppTheme } from '../context/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Card } from './Card';
+import { useTheme } from '../hooks/useTheme';
 
 interface InfoCardProps {
   label: string;
   value: string | number;
   unit?: string;
-  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  icon?: string;
   iconColor?: string;
 }
 
 export const InfoCard = ({ label, value, unit, icon, iconColor }: InfoCardProps) => {
-  const { theme } = useAppTheme();
-  const color = iconColor || theme.colors.primary;
+  const { colors, typography, spacing } = useTheme();
+
+  const color = iconColor || colors.primary;
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.iconContainer, { backgroundColor: color + '15' }]}>
-        <MaterialCommunityIcons 
-          name={icon || 'information'} 
-          size={22} 
-          color={color} 
-        />
+    <Card style={styles.card} padding="sm">
+      <View style={styles.container}>
+        <View style={[styles.iconContainer, { backgroundColor: color + '15' }]}>
+          {icon && <MaterialCommunityIcons name={icon as any} size={20} color={color} />}
+        </View>
+        <View style={styles.content}>
+          <Text 
+            numberOfLines={1} 
+            style={[styles.label, { color: colors.textSecondary, fontSize: typography.sizes.xs }]}
+          >
+            {label}
+          </Text>
+          <View style={styles.valueRow}>
+            <Text 
+              numberOfLines={1}
+              style={[styles.value, { color: colors.text, fontSize: typography.sizes.md }]}
+            >
+              {value}
+            </Text>
+            {unit && (
+              <Text style={[styles.unit, { color: colors.textSecondary, fontSize: typography.sizes.xs }]}>
+                {unit}
+              </Text>
+            )}
+          </View>
+        </View>
       </View>
-      <View style={styles.textContainer}>
-        <Text style={[styles.label, { color: theme.colors.textSecondary }]}>{label}</Text>
-        <Text style={[styles.value, { color: theme.colors.text }]}>
-          {value}
-          {unit && <Text style={styles.unit}> {unit}</Text>}
-        </Text>
-      </View>
-    </View>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
+  card: {
+    width: '48%',
+    marginBottom: 12,
+  },
   container: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
   },
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
-  textContainer: {
+  content: {
     flex: 1,
   },
   label: {
-    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: 2,
-    fontWeight: '500',
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   value: {
-    fontSize: 17,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   unit: {
-    fontSize: 12,
-    fontWeight: 'normal',
+    marginLeft: 2,
+    fontWeight: '500',
   },
 });

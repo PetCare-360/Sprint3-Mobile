@@ -1,12 +1,4 @@
-import { theme } from '../theme';
-
-export type RiskLevel = 'critical' | 'warning' | 'stable';
-
-export interface VitalSigns {
-  temperature: number;
-  heartRate: number;
-  activity: 'Baixa' | 'Média' | 'Alta';
-}
+import { RiskLevel, VitalSigns } from '../types/pet';
 
 export interface Alert {
   id: string;
@@ -17,22 +9,15 @@ export interface Alert {
 }
 
 export const AlertService = {
-  /**
-   * Calcula o nível de risco global baseado nos sinais vitais
-   */
   calculateRiskLevel(vitals: VitalSigns): RiskLevel {
     if (vitals.temperature > 39) return 'critical';
     if (vitals.heartRate > 130 || vitals.activity === 'Baixa') return 'warning';
     return 'stable';
   },
 
-  /**
-   * Gera uma lista de alertas específicos baseados nos sinais vitais
-   */
   getVitalsAlerts(vitals: VitalSigns): Alert[] {
     const alerts: Alert[] = [];
 
-    // Regra de Temperatura
     if (vitals.temperature > 39) {
       alerts.push({
         id: 'temp_high',
@@ -43,7 +28,6 @@ export const AlertService = {
       });
     }
 
-    // Regra de Batimentos
     if (vitals.heartRate > 130) {
       alerts.push({
         id: 'hr_high',
@@ -54,7 +38,6 @@ export const AlertService = {
       });
     }
 
-    // Regra de Atividade
     if (vitals.activity === 'Baixa') {
       alerts.push({
         id: 'activity_low',
@@ -68,15 +51,19 @@ export const AlertService = {
     return alerts;
   },
 
-  /**
-   * Retorna a cor associada ao nível de risco
-   */
-  getStatusColor(status: RiskLevel): string {
+  getStatusColor(status: RiskLevel, theme?: any): string {
+    const colors = theme || {
+      danger: '#FF3B30',
+      warning: '#FFCC00',
+      success: '#34C759',
+      textSecondary: '#8E8E93',
+    };
+
     switch (status) {
-      case 'critical': return theme.colors.danger;
-      case 'warning': return theme.colors.warning;
-      case 'stable': return theme.colors.success;
-      default: return theme.colors.textSecondary;
+      case 'critical': return colors.danger;
+      case 'warning': return colors.warning;
+      case 'stable': return colors.success;
+      default: return colors.textSecondary;
     }
   }
 };

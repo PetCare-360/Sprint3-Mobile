@@ -1,70 +1,124 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
-import { theme } from '../../theme';
+import React, { useState, useCallback } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  FlatList, 
+  TouchableOpacity, 
+  TextInput, 
+  Modal, 
+  Alert as RNAlert,
+  Image
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '../../components/Card';
-import { AlertService, RiskLevel } from '../../services/alertService';
-
-interface Patient {
-  id: string;
-  name: string;
-  breed: string;
-  owner: string;
-  heartRate: number;
-  temperature: number;
-  activity: 'Baixa' | 'Média' | 'Alta';
-}
-
-const mockPatients: Patient[] = [
-  { id: '1', name: 'Max', breed: 'Golden Retriever', owner: 'Carlos Silva', heartRate: 140, temperature: 39.5, activity: 'Alta' },
-  { id: '2', name: 'Luna', breed: 'Siamês', owner: 'Ana Oliveira', heartRate: 80, temperature: 38.5, activity: 'Baixa' },
-  { id: '3', name: 'Thor', breed: 'Bulldog', owner: 'João Souza', heartRate: 110, temperature: 38.8, activity: 'Média' },
-  { id: '4', name: 'Bella', breed: 'Poodle', owner: 'Maria Luz', heartRate: 135, temperature: 38.2, activity: 'Média' },
-  { id: '5', name: 'Mike', breed: 'Beagle', owner: 'Pedro Rocha', heartRate: 90, temperature: 39.2, activity: 'Baixa' },
-  { id: '6', name: 'Nina', breed: 'Persa', owner: 'Julia Costa', heartRate: 95, temperature: 38.4, activity: 'Alta' },
-];
+import { Button } from '../../components/Button';
+import { Input } from '../../components/Input';
+import { Header } from '../../components/Header';
+import { useTheme } from '../../hooks/useTheme';
+import { AlertService } from '../../services/alertService';
+import { PatientService } from '../../services/patientService';
+import { Pet, RiskLevel } from '../../types/pet';
 
 export const Patients = ({ navigation }: any) => {
+  const { colors, spacing, typography, radius } = useTheme();
+  const [patients, setPatients] = useState<Pet[]>([]);
   const [search, setSearch] = useState('');
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [collarId, setCollarId] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const filteredPatients = mockPatients.filter(p => 
-    p.name.toLowerCase().includes(search.toLowerCase()) || 
-    p.breed.toLowerCase().includes(search.toLowerCase())
-  ).map(p => ({
-    ...p,
-    status: AlertService.calculateRiskLevel({
-      temperature: p.temperature,
-      heartRate: p.heartRate,
-      activity: p.activity
-    })
-  })).sort((a, b) => {
-    const priority = { critical: 0, warning: 1, stable: 2 };
-    return priority[a.status as RiskLevel] - priority[b.status as RiskLevel];
-  });
+  const loadPatients = useCallback(async () => {
+    const data = await PatientService.getPatients();
+    setPatients(data);
+  }, []);
 
-  const renderPatient = ({ item }: { item: any }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('PetDetails', { petId: item.id })}>
-      <Card style={styles.patientCard}>
+  useFocusEffect(
+    useCallback(() => {
+      loadPatients();
+    }, [loadPatients])
+  );
+
+  const handleAddPatient = async () => {
+    if (!collarId.trim()) {
+      RNAlert.alert('Erro', 'Por favor, digite o ID da coleira.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await PatientService.addPatient(collarId);
+      await loadPatients();
+      setIsModalVisible(false);
+      setCollarId('');
+      RNAlert.alert('Sucesso', 'Paciente vinculado com sucesso.');
+    } catch {
+      RNAlert.alert('Erro', 'Não foi possível vincular o paciente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeletePatient = (id: string, name: string) => {
+    RNAlert.alert(
+      'Remover Paciente',
+      `Deseja realmente remover ${name} da sua lista de pacientes?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Remover', 
+          style: 'destructive',
+          onPress: async () => {
+            await PatientService.removePatient(id);
+            await loadPatients();
+          }
+        }
+      ]
+    );
+  };
+
+  const filteredPatients = patients
+    .filter(p => 
+      p.name.toLowerCase().includes(search.toLowerCase()) || 
+      p.breed.toLowerCase().includes(search.toLowerCase())
+    )
+    .map(p => ({
+      ...p,
+      status: AlertService.calculateRiskLevel({
+        temperature: p.temperature,
+        heartRate: p.heartRate,
+        activity: p.activity
+      })
+    }))
+    .sort((a, b) => {
+      const priority: Record<RiskLevel, number> = { critical: 0, warning: 1, stable: 2 };
+      return priority[a.status as RiskLevel] - priority[b.status as RiskLevel];
+    });
+
+  const renderPatient = ({ item }: { item: Pet & { status: RiskLevel } }) => (
+    <TouchableOpacity 
+      onPress={() => navigation.navigate('PetDetails', { petId: item.id })}
+      activeOpacity={0.7}
+    >
+      <Card style={styles.patientCard} variant="elevated" padding="md">
         <View style={styles.cardHeader}>
-          <View>
-            <Text style={styles.patientName}>{item.name}</Text>
-            <Text style={styles.patientBreed}>{item.breed} • {item.owner}</Text>
+          <Image source={item.image} style={[styles.listPetImage, { borderRadius: radius.sm }]} />
+          <View style={styles.patientInfo}>
+            <Text style={[styles.patientName, { color: colors.text, fontSize: typography.sizes.md }]}>{item.name}</Text>
+            <Text style={[styles.patientBreed, { color: colors.textSecondary, fontSize: typography.sizes.sm }]}>{item.breed}</Text>
+            <View style={[styles.collarBadge, { backgroundColor: colors.primary + '10' }]}>
+              <Text style={[styles.collarId, { color: colors.primary, fontSize: typography.sizes.xs }]}>ID: {item.collarId}</Text>
+            </View>
           </View>
-          <View style={[styles.statusIndicator, { backgroundColor: AlertService.getStatusColor(item.status) }]} />
-        </View>
-
-        <View style={styles.vitalsRow}>
-          <View style={styles.vitalBlock}>
-            <MaterialCommunityIcons name="thermometer" size={14} color={theme.colors.textSecondary} />
-            <Text style={styles.vitalText}>{item.temperature}°C</Text>
-          </View>
-          <View style={styles.vitalBlock}>
-            <MaterialCommunityIcons name="heart-pulse" size={14} color={theme.colors.textSecondary} />
-            <Text style={styles.vitalText}>{item.heartRate} bpm</Text>
-          </View>
-          <View style={styles.vitalBlock}>
-            <MaterialCommunityIcons name="run" size={14} color={theme.colors.textSecondary} />
-            <Text style={styles.vitalText}>{item.activity}</Text>
+          <View style={styles.cardActions}>
+            <View style={[styles.statusIndicator, { backgroundColor: AlertService.getStatusColor(item.status) }]} />
+            <TouchableOpacity 
+              onPress={() => handleDeletePatient(item.id, item.name)}
+              style={[styles.deleteButton, { backgroundColor: colors.danger + '10', borderRadius: radius.xs }]}
+            >
+              <MaterialCommunityIcons name="trash-can-outline" size={18} color={colors.danger} />
+            </TouchableOpacity>
           </View>
         </View>
       </Card>
@@ -72,35 +126,84 @@ export const Patients = ({ navigation }: any) => {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Meus Pacientes</Text>
-      </View>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Header 
+        title="Meus Pacientes" 
+        showBack 
+        onBack={() => navigation.goBack()}
+        rightElement={
+          <TouchableOpacity 
+            onPress={() => setIsModalVisible(true)} 
+            style={styles.settingsButton}
+          >
+            <MaterialCommunityIcons name="plus" size={24} color={colors.white} />
+          </TouchableOpacity>
+        }
+      />
 
-      <View style={styles.searchContainer}>
-        <MaterialCommunityIcons name="magnify" size={20} color={theme.colors.textSecondary} />
+      <View style={[styles.searchContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.text }]}
           placeholder="Buscar por nome ou raça..."
           value={search}
           onChangeText={setSearch}
-          placeholderTextColor={theme.colors.textSecondary}
+          placeholderTextColor={colors.textSecondary}
         />
       </View>
 
       <FlatList
-        data={filteredPatients}
+        data={filteredPatients as any}
         keyExtractor={(item) => item.id}
         renderItem={renderPatient}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>Nenhum paciente encontrado.</Text>
+          <View style={styles.emptyContainer}>
+            <MaterialCommunityIcons name="dog-variant" size={60} color={colors.border} />
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Nenhum paciente encontrado.</Text>
+          </View>
         }
       />
+
+      <Modal
+        visible={isModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Card style={styles.modalContent} variant="elevated" padding="lg">
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text, fontSize: typography.sizes.xl }]}>Vincular Nova Coleira</Text>
+              <TouchableOpacity onPress={() => setIsModalVisible(false)}>
+                <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={[styles.modalSubtitle, { color: colors.textSecondary, marginBottom: spacing.lg }]}>
+              Digite o ID da coleira inteligente para importar os dados do pet para sua lista.
+            </Text>
+            
+            <Input
+              label="ID da Coleira"
+              placeholder="Ex: COL-123"
+              value={collarId}
+              onChangeText={setCollarId}
+              autoCapitalize="characters"
+              icon={<MaterialCommunityIcons name="tag-outline" size={20} color={colors.textSecondary} />}
+            />
+
+            <View style={styles.modalActions}>
+              <Button 
+                title="Vincular Paciente" 
+                onPress={handleAddPatient}
+                loading={isLoading}
+              />
+            </View>
+          </Card>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -108,88 +211,100 @@ export const Patients = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
-    paddingTop: 50,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
-  },
-  backButton: {
-    marginRight: theme.spacing.sm,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text,
+  settingsButton: {
+    padding: 8,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.card,
-    marginHorizontal: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    marginBottom: theme.spacing.lg,
-    height: 45,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    marginHorizontal: 20,
+    marginTop: 20,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    marginBottom: 20,
+    height: 50,
+    borderWidth: 1.5,
   },
   searchInput: {
     flex: 1,
-    marginLeft: theme.spacing.sm,
-    color: theme.colors.text,
+    marginLeft: 8,
     fontSize: 16,
   },
-  list: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
-  },
   patientCard: {
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
+    marginBottom: 12,
+  },
+  listPetImage: {
+    width: 60,
+    height: 60,
+    marginRight: 16,
   },
   cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing.md,
+    alignItems: 'center',
+  },
+  patientInfo: {
+    flex: 1,
   },
   patientName: {
-    fontSize: 18,
     fontWeight: 'bold',
-    color: theme.colors.text,
   },
   patientBreed: {
-    fontSize: 13,
-    color: theme.colors.textSecondary,
+    marginBottom: 4,
+  },
+  collarBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  collarId: {
+    fontWeight: 'bold',
+  },
+  cardActions: {
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    height: 60,
   },
   statusIndicator: {
     width: 12,
     height: 12,
     borderRadius: 6,
   },
-  vitalsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-    paddingTop: theme.spacing.sm,
+  deleteButton: {
+    padding: 8,
   },
-  vitalBlock: {
-    flexDirection: 'row',
+  emptyContainer: {
     alignItems: 'center',
-  },
-  vitalText: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-    marginLeft: 4,
+    marginTop: 60,
   },
   emptyText: {
-    textAlign: 'center',
-    marginTop: 50,
-    color: theme.colors.textSecondary,
+    marginTop: 16,
+    fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginBottom: 0,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontWeight: 'bold',
+  },
+  modalSubtitle: {
+    lineHeight: 20,
+  },
+  modalActions: {
+    marginTop: 8,
   },
 });

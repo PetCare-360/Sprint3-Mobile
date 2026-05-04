@@ -1,25 +1,7 @@
-export interface PetStatus {
-  id: string;
-  name: string;
-  breed: string;
-  owner: string;
-  heartRate: number;
-  temperature: number;
-  activity: string;
-  battery: number;
-  status: 'critical' | 'warning' | 'stable';
-  image: any;
-  location: {
-    latitude: number;
-    longitude: number;
-    latitudeDelta: number;
-    longitudeDelta: number;
-  };
-}
+import { Pet } from '../types/pet';
 
 export const ApiService = {
-  // Simula uma chamada de API para obter o status atual do pet
-  async getPetStatus(id: string = '1'): Promise<PetStatus> {
+  async getPetStatus(id: string = '1'): Promise<Pet> {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({
@@ -29,7 +11,7 @@ export const ApiService = {
           owner: id === '1' ? 'Carlos' : 'Ana',
           heartRate: 85 + Math.floor(Math.random() * 20),
           temperature: 38.2 + (Math.random() * 0.5),
-          activity: 'Descansando',
+          activity: 'Média',
           battery: 85,
           status: 'stable',
           image: id === '1' ? require('../../public/dog1.jpg') : id === '2' ? require('../../public/cat1.jpg') : require('../../public/dog2.jpg'),
@@ -44,7 +26,7 @@ export const ApiService = {
     });
   },
 
-  async getPatients(): Promise<PetStatus[]> {
+  async getPatients(): Promise<Pet[]> {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve([

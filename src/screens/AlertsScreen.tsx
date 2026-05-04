@@ -1,66 +1,52 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, StatusBar } from 'react-native';
-import { useAppTheme } from '../context/ThemeContext';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { NotificationItem } from '../components/NotificationItem';
-
-const ALERTS_DATA = [
-  {
-    id: '1',
-    title: 'Batimentos Elevados',
-    message: 'O coração do seu pet está batendo mais rápido que o normal (125 bpm).',
-    time: 'Há 5 min',
-    type: 'danger' as const,
-  },
-  {
-    id: '2',
-    title: 'Bateria Fraca',
-    message: 'A coleira está com 15% de bateria. Carregue em breve.',
-    time: 'Há 1 hora',
-    type: 'warning' as const,
-  },
-  {
-    id: '3',
-    title: 'Meta de Passos',
-    message: 'Parabéns! Max atingiu a meta diária de 5.000 passos.',
-    time: 'Há 3 horas',
-    type: 'success' as const,
-  },
-  {
-    id: '4',
-    title: 'Atualização de Firmware',
-    message: 'Uma nova versão do software da coleira está disponível.',
-    time: 'Ontem',
-    type: 'info' as const,
-  },
-];
+import { Header } from '../components/Header';
+import { useTheme } from '../hooks/useTheme';
 
 export const AlertsScreen = () => {
-  const { theme, isDark } = useAppTheme();
+  const { colors, spacing, typography } = useTheme();
+
+  const alerts = [
+    { 
+      type: 'warning', 
+      title: 'Temperatura Alta', 
+      message: 'A temperatura de Max subiu para 39.5°C.', 
+      time: '10 min atrás' 
+    },
+    { 
+      type: 'error', 
+      title: 'Bateria Fraca', 
+      message: 'A coleira de Thor está com 15% de bateria.', 
+      time: '1 hora atrás' 
+    },
+    { 
+      type: 'success', 
+      title: 'Refeição Concluída', 
+      message: 'Luna consumiu sua porção matinal.', 
+      time: '2 horas atrás' 
+    },
+    { 
+      type: 'info', 
+      title: 'Lembrete de Vacina', 
+      message: 'Max tem vacina agendada para amanhã.', 
+      time: '5 horas atrás' 
+    },
+  ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Alertas</Text>
-        <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-          Acompanhe o que está acontecendo com seu pet
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Header title="Alertas" />
+      <ScrollView contentContainerStyle={[styles.content, { padding: spacing.lg }]}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary, fontSize: typography.sizes.md }]}>
+          Acompanhe as notificações importantes dos seus pets.
         </Text>
-      </View>
-      
-      <FlatList
-        data={ALERTS_DATA}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <NotificationItem
-            title={item.title}
-            message={item.message}
-            time={item.time}
-            type={item.type}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-      />
-    </SafeAreaView>
+
+        {alerts.map((alert, index) => (
+          <NotificationItem key={index} {...alert as any} />
+        ))}
+      </ScrollView>
+    </View>
   );
 };
 
@@ -68,23 +54,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    fontSize: 34,
-    fontWeight: 'bold',
-    letterSpacing: -1,
-  },
+  content: {},
   subtitle: {
-    fontSize: 16,
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  listContent: {
-    paddingBottom: 40,
-    paddingTop: 8,
+    marginBottom: 24,
+    lineHeight: 22,
   },
 });

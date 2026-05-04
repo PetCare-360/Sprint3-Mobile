@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { User, userStorage } from '../storage/userStorage';
 import { authService } from '../services/authService';
 
@@ -26,19 +26,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadStorageData();
   }, []);
 
-  const signIn = async (login: string, password: string) => {
+  const signIn = useCallback(async (login: string, password: string) => {
     const authenticatedUser = await authService.signIn(login, password);
     if (authenticatedUser) {
       setUser(authenticatedUser);
       return true;
     }
     return false;
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await authService.signOut();
     setUser(null);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
@@ -48,5 +48,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }

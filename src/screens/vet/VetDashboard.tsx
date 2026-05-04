@@ -1,36 +1,42 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList } from 'react-native';
-import { theme } from '../../theme';
+import React, { useState, useCallback } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  FlatList, 
+  ActivityIndicator, 
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '../../components/Card';
-import { useAuth } from '../../context/AuthContext';
-import { AlertService, RiskLevel } from '../../services/alertService';
-
-// 1. Definição da interface para os dados mockados
-interface Patient {
-  id: string;
-  name: string;
-  breed: string;
-  heartRate: number;
-  temperature: number;
-  activity: 'Baixa' | 'Média' | 'Alta';
-  status?: RiskLevel;
-}
-
-// 2. Lista mockada de pets com dados clínicos
-const mockPatients: Patient[] = [
-  { id: '1', name: 'Max', breed: 'Golden Retriever', heartRate: 140, temperature: 39.5, activity: 'Alta' },
-  { id: '2', name: 'Luna', breed: 'Siamês', heartRate: 80, temperature: 38.5, activity: 'Baixa' },
-  { id: '3', name: 'Thor', breed: 'Bulldog', heartRate: 110, temperature: 38.8, activity: 'Média' },
-  { id: '4', name: 'Bella', breed: 'Poodle', heartRate: 135, temperature: 38.2, activity: 'Média' },
-  { id: '5', name: 'Mike', breed: 'Beagle', heartRate: 90, temperature: 39.2, activity: 'Baixa' },
-];
+import { Header } from '../../components/Header';
+import { AlertService } from '../../services/alertService';
+import { PatientService } from '../../services/patientService';
+import { useTheme } from '../../hooks/useTheme';
+import { Pet, RiskLevel } from '../../types/pet';
 
 export const VetDashboard = ({ navigation }: any) => {
-  const { signOut } = useAuth();
+  const { colors, spacing, typography, radius } = useTheme();
+  const [patients, setPatients] = useState<Pet[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Processamento dos pets usando o AlertService
-  const processedPatients = mockPatients
+  const loadDashboardData = useCallback(async () => {
+    try {
+      const data = await PatientService.getPatients();
+      setPatients(data);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboardData();
+    }, [loadDashboardData])
+  );
+
+  const processedPatients = patients
     .map(p => ({ 
       ...p, 
       status: AlertService.calculateRiskLevel({ 
@@ -40,91 +46,104 @@ export const VetDashboard = ({ navigation }: any) => {
       }) 
     }))
     .sort((a, b) => {
-      const priority = { critical: 0, warning: 1, stable: 2 };
+      const priority: Record<RiskLevel, number> = { critical: 0, warning: 1, stable: 2 };
       return priority[a.status!] - priority[b.status!];
     });
 
   const criticalCount = processedPatients.filter(p => p.status === 'critical').length;
   const warningCount = processedPatients.filter(p => p.status === 'warning').length;
 
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sair',
-      'Deseja realmente sair do sistema?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Sair', 
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-          }
-        }
-      ]
-    );
-  };
-
   const renderPatientCard = ({ item }: { item: typeof processedPatients[0] }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('PetDetails', { petId: item.id })}>
-      <Card style={[styles.patientCard, { borderLeftColor: AlertService.getStatusColor(item.status!), borderLeftWidth: 5 }]}>
+    <TouchableOpacity onPress={() => navigation.navigate('PetDetails', { petId: item.id })} activeOpacity={0.7}>
+      <Card 
+        style={[styles.patientCard, { borderLeftColor: AlertService.getStatusColor(item.status!), borderLeftWidth: 6 }]}
+        variant="elevated"
+        padding="md"
+      >
         <View style={styles.patientInfo}>
-          <View>
-            <Text style={styles.patientName}>{item.name}</Text>
-            <Text style={styles.patientBreed}>{item.breed}</Text>
-          </View>
-          <View style={styles.vitalSigns}>
-            <View style={styles.vitalItem}>
-              <MaterialCommunityIcons name="thermometer" size={16} color={theme.colors.textSecondary} />
-              <Text style={styles.vitalValue}>{item.temperature}°C</Text>
-            </View>
-            <View style={styles.vitalItem}>
-              <MaterialCommunityIcons name="heart-pulse" size={16} color={theme.colors.textSecondary} />
-              <Text style={styles.vitalValue}>{item.heartRate} bpm</Text>
-            </View>
-          </View>
+          <Text style={[styles.patientName, { color: colors.text, fontSize: typography.sizes.md }]}>{item.name}</Text>
+          <Text style={[styles.patientBreed, { color: colors.textSecondary, fontSize: typography.sizes.sm }]}>{item.breed}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: AlertService.getStatusColor(item.status!) }]}>
-          <Text style={styles.statusText}>{item.status === 'stable' ? 'ESTÁVEL' : item.status!.toUpperCase()}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: AlertService.getStatusColor(item.status!) + '20' }]}>
+          <Text style={[styles.statusText, { color: AlertService.getStatusColor(item.status!) }]}>
+            {item.status === 'stable' ? 'OK' : item.status!.toUpperCase()}
+          </Text>
         </View>
       </Card>
     </TouchableOpacity>
   );
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.welcome}>Painel Clínico</Text>
-          <Text style={styles.subtitle}>Triagem prioritária de pacientes</Text>
-        </View>
-        <TouchableOpacity onPress={handleSignOut} style={styles.logoutButton}>
-          <MaterialCommunityIcons name="logout" size={24} color={theme.colors.danger} />
-        </TouchableOpacity>
-      </View>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Header 
+        title="Painel Clínico" 
+        rightElement={
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Settings')} 
+            style={styles.settingsButton}
+          >
+            <MaterialCommunityIcons name="cog-outline" size={24} color={colors.white} />
+          </TouchableOpacity>
+        }
+      />
 
-      <View style={styles.summaryContainer}>
-        <View style={[styles.summaryItem, { backgroundColor: theme.colors.danger + '20' }]}>
-          <Text style={[styles.summaryValue, { color: theme.colors.danger }]}>{criticalCount}</Text>
-          <Text style={styles.summaryLabel}>Críticos</Text>
-        </View>
-        <View style={[styles.summaryItem, { backgroundColor: theme.colors.warning + '20' }]}>
-          <Text style={[styles.summaryValue, { color: theme.colors.warning }]}>{warningCount}</Text>
-          <Text style={styles.summaryLabel}>Alertas</Text>
-        </View>
-        <View style={[styles.summaryItem, { backgroundColor: theme.colors.success + '20' }]}>
-          <Text style={[styles.summaryValue, { color: theme.colors.success }]}>{processedPatients.length - criticalCount - warningCount}</Text>
-          <Text style={styles.summaryLabel}>Estáveis</Text>
-        </View>
-      </View>
-
-      <Text style={styles.sectionTitle}>Pacientes por Risco</Text>
-      
       <FlatList
         data={processedPatients}
         keyExtractor={(item) => item.id}
         renderItem={renderPatientCard}
+        ListHeaderComponent={
+          <>
+            <View style={[styles.summaryContainer, { paddingHorizontal: spacing.lg, marginTop: spacing.md }]}>
+              <Card style={styles.summaryCard} variant="elevated" padding="md">
+                <View style={styles.summaryRow}>
+                  <View style={styles.summaryItem}>
+                    <Text style={[styles.summaryValue, { color: colors.danger }]}>{criticalCount}</Text>
+                    <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Críticos</Text>
+                  </View>
+                  <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                  <View style={styles.summaryItem}>
+                    <Text style={[styles.summaryValue, { color: colors.warning }]}>{warningCount}</Text>
+                    <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Alertas</Text>
+                  </View>
+                  <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                  <View style={styles.summaryItem}>
+                    <Text style={[styles.summaryValue, { color: colors.success }]}>{processedPatients.length - criticalCount - warningCount}</Text>
+                    <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Estáveis</Text>
+                  </View>
+                </View>
+              </Card>
+            </View>
+
+            <View style={[styles.sectionHeaderRow, { paddingHorizontal: spacing.lg, marginVertical: spacing.md }]}>
+              <Text style={[styles.sectionTitle, { color: colors.text, fontSize: typography.sizes.lg }]}>Triagem de Risco</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Patients')}>
+                <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Ver Todos</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <MaterialCommunityIcons name="dog-variant" size={48} color={colors.border} />
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Nenhum paciente vinculado.</Text>
+            <TouchableOpacity 
+              style={[styles.emptyButton, { backgroundColor: colors.primary, marginTop: spacing.md, borderRadius: radius.md }]}
+              onPress={() => navigation.navigate('Patients')}
+            >
+              <Text style={styles.emptyButtonText}>Vincular Paciente</Text>
+            </TouchableOpacity>
+          </View>
+        }
       />
     </View>
   );
@@ -133,103 +152,93 @@ export const VetDashboard = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
-    paddingTop: 60,
   },
-  header: {
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  settingsButton: {
+    padding: 8,
+  },
+  summaryContainer: {
+    marginBottom: 8,
+  },
+  summaryCard: {
+    marginBottom: 0,
+  },
+  summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
-  },
-  welcome: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-  },
-  logoutButton: {
-    padding: theme.spacing.sm,
-  },
-  summaryContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
   },
   summaryItem: {
     flex: 1,
-    marginHorizontal: 4,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
     alignItems: 'center',
   },
+  divider: {
+    width: 1,
+    height: 30,
+  },
   summaryValue: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
   },
   summaryLabel: {
     fontSize: 12,
-    color: theme.colors.textSecondary,
+    fontWeight: '600',
     marginTop: 2,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-    paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
-  },
-  listContent: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
-  },
-  patientCard: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
+  },
+  sectionTitle: {
+    fontWeight: 'bold',
+  },
+  listContent: {
+    paddingBottom: 32,
+  },
+  patientCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 10,
+    justifyContent: 'space-between',
   },
   patientInfo: {
     flex: 1,
   },
   patientName: {
-    fontSize: 16,
     fontWeight: 'bold',
-    color: theme.colors.text,
   },
   patientBreed: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.sm,
-  },
-  vitalSigns: {
-    flexDirection: 'row',
-  },
-  vitalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: theme.spacing.md,
-  },
-  vitalValue: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-    marginLeft: 4,
+    marginTop: 2,
   },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   statusText: {
-    color: theme.colors.white,
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 40,
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  emptyButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  emptyButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  }
 });
-

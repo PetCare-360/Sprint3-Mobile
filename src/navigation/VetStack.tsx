@@ -3,33 +3,36 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { VetDashboard } from '../screens/vet/VetDashboard';
 import { Patients } from '../screens/vet/Patients';
 import { PetDetails } from '../screens/vet/PetDetails';
-import { theme } from '../theme';
+import { Settings } from '../screens/vet/Settings';
+import { useTheme } from '../hooks/useTheme';
 
 const Stack = createNativeStackNavigator();
 
 export const VetStack = () => {
+  const { colors } = useTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: theme.colors.primary },
-        headerTintColor: theme.colors.white,
-        headerTitleStyle: { fontWeight: 'bold' },
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background }
       }}
     >
       <Stack.Screen 
         name="VetDashboard" 
         component={VetDashboard} 
-        options={{ title: 'Painel Veterinário' }}
       />
       <Stack.Screen 
         name="Patients" 
         component={Patients} 
-        options={{ title: 'Meus Pacientes' }}
       />
       <Stack.Screen 
         name="PetDetails" 
         component={PetDetails} 
-        options={{ title: 'Detalhes do Pet' }}
+      />
+      <Stack.Screen 
+        name="Settings" 
+        component={Settings} 
       />
     </Stack.Navigator>
   );

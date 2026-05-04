@@ -1,168 +1,166 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   ScrollView, 
-  SafeAreaView, 
+  TouchableOpacity, 
+  Image, 
   ActivityIndicator, 
   RefreshControl,
-  Image,
-  StatusBar
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '../components/Card';
+import { Header } from '../components/Header';
 import { InfoCard } from '../components/InfoCard';
-import { ApiService, PetStatus } from '../services/api';
-import { StorageService, PetData } from '../storage';
-import { useAppTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { ApiService } from '../services/api';
+import { StorageService, PetData } from '../storage';
+import { useTheme } from '../hooks/useTheme';
+import { useFocusEffect } from '@react-navigation/native';
+import { Pet } from '../types/pet';
 
 export const HomeScreen = () => {
-  const { theme, isDark } = useAppTheme();
   const { user } = useAuth();
-  const [status, setStatus] = useState<PetStatus | null>(null);
-  const [petData, setPetData] = useState<PetData | null>(null);
+  const { colors, spacing, typography, radius, shadows } = useTheme();
+  const [status, setStatus] = useState<Pet | null>(null);
+  const [localPet, setLocalPet] = useState<PetData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
+    setLoading(true);
     try {
-      const [statusData, localPetData] = await Promise.all([
+      const [apiStatus, storedPet] = await Promise.all([
         ApiService.getPetStatus('1'),
         StorageService.getPetData()
       ]);
-      setStatus(statusData);
-      setPetData(localPetData);
-    } catch (error) {
-      console.error(error);
+      setStatus(apiStatus);
+      setLocalPet(storedPet);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadData();
-  };
-
-  if (loading && !refreshing) {
+  if (loading && !status) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
-  const isCritical = status?.heartRate && status.heartRate > 120;
+  const petName = localPet?.name || status?.name;
+  const petImage = localPet?.image 
+    ? { uri: `data:image/png;base64,${localPet.image}` }
+    : status?.image;
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+    <View style={[styles.mainContainer, { backgroundColor: colors.background }]}>
+      <Header 
+        title="Início" 
+        rightElement={
+          <TouchableOpacity style={[styles.avatarButton, { ...shadows.sm }]}>
+            {petImage ? (
+              <Image source={petImage} style={[styles.avatar, { borderRadius: radius.round, borderWidth: 2, borderColor: colors.white }]} />
+            ) : (
+              <View style={[styles.avatarPlaceholder, { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: radius.round }]}>
+                <MaterialCommunityIcons name="dog" size={24} color={colors.white} />
+              </View>
+            )}
+          </TouchableOpacity>
+        }
+      />
+
       <ScrollView 
-        contentContainerStyle={styles.container}
+        style={styles.container}
+        contentContainerStyle={{ padding: spacing.lg }}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh} 
-            tintColor={theme.colors.primary} 
+            refreshing={loading} 
+            onRefresh={loadData} 
+            tintColor={colors.primary} 
           />
         }
       >
-        <View style={styles.header}>
-          <View>
-            <Text style={[styles.welcomeText, { color: theme.colors.text }]}>
-              Olá, {user?.name.split(' ')[0] || 'Pet Lover'}! 🐾
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-              {petData?.name || 'Seu pet'} está {isCritical ? 'precisando de atenção' : 'bem agora'}.
-            </Text>
-          </View>
-          {petData?.image ? (
-            <Image 
-              source={{ uri: `data:image/png;base64,${petData.image}` }} 
-              style={styles.avatar} 
-            />
-          ) : (
-            <View style={[styles.avatarPlaceholder, { backgroundColor: theme.colors.card }]}>
-              <Text style={{ fontSize: 24 }}>🐶</Text>
+        <View style={styles.welcomeSection}>
+          <Text style={[styles.welcomeText, { color: colors.text, fontSize: typography.sizes.xxl }]}>
+            Olá, {localPet?.ownerName || user?.name || 'Tutor'}
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary, fontSize: typography.sizes.md }]}>
+            {petName} está bem hoje! 🐾
+          </Text>
+        </View>
+
+        <Text style={[styles.sectionTitle, { color: colors.text, fontSize: typography.sizes.lg, marginBottom: spacing.md }]}>
+          Sinais Vitais
+        </Text>
+        <View style={styles.vitalsGrid}>
+          <InfoCard 
+            label="Temperatura" 
+            value={status?.temperature.toFixed(1) || '0'} 
+            unit="°C"
+            icon="thermometer"
+            iconColor={colors.danger} 
+          />
+          <InfoCard 
+            label="Batimentos" 
+            value={status?.heartRate || '0'} 
+            unit="bpm"
+            icon="heart-pulse"
+            iconColor={colors.secondary} 
+          />
+          <InfoCard 
+            label="Atividade" 
+            value={status?.activity || 'N/A'} 
+            icon="run"
+            iconColor={colors.success} 
+          />
+          <InfoCard 
+            label="Bateria" 
+            value={status?.battery || '0'} 
+            unit="%"
+            icon="battery-80"
+            iconColor={colors.warning} 
+          />
+        </View>
+
+        <Text style={[styles.sectionTitle, { color: colors.text, fontSize: typography.sizes.lg, marginBottom: spacing.md }]}>
+          Localização
+        </Text>
+        <Card style={{ marginBottom: spacing.lg }} padding="md">
+          <View style={styles.locationRow}>
+            <View style={[styles.locationIcon, { backgroundColor: colors.primary + '15', borderRadius: radius.md }]}>
+              <MaterialCommunityIcons name="map-marker" size={24} color={colors.primary} />
             </View>
-          )}
-        </View>
-
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Sinais Vitais</Text>
-        
-        <View style={styles.statsGrid}>
-          <Card style={styles.statCard}>
-            <InfoCard 
-              label="Temperatura" 
-              value={status?.temperature.toFixed(1) || '--'} 
-              unit="°C" 
-              icon="thermometer"
-              iconColor={theme.colors.danger} 
-            />
-          </Card>
-          <Card style={styles.statCard}>
-            <InfoCard 
-              label="Batimentos" 
-              value={status?.heartRate.toString() || '--'} 
-              unit="bpm" 
-              icon="heart-pulse"
-              iconColor={theme.colors.secondary} 
-            />
-          </Card>
-        </View>
-
-        <View style={styles.statsGrid}>
-          <Card style={styles.statCard}>
-            <InfoCard 
-              label="Atividade" 
-              value={status?.activity || '--'} 
-              icon="run"
-              iconColor={theme.colors.success} 
-            />
-          </Card>
-          <Card style={styles.statCard}>
-            <InfoCard 
-              label="Bateria" 
-              value={status?.battery.toString() || '--'} 
-              unit="%" 
-              icon="battery-80"
-              iconColor={theme.colors.warning} 
-            />
-          </Card>
-        </View>
-
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Localização</Text>
-        <Card style={styles.locationCard}>
-          <View style={styles.locationHeader}>
-            <View style={[styles.locationIcon, { backgroundColor: theme.colors.primary + '15' }]}>
-              <Text style={{ fontSize: 20 }}>📍</Text>
-            </View>
-            <View>
-              <Text style={[styles.locationTitle, { color: theme.colors.text }]}>Centro, São Paulo - SP</Text>
-              <Text style={[styles.locationSubtitle, { color: theme.colors.textSecondary }]}>Visto pela última vez às 10:30</Text>
+            <View style={styles.locationInfo}>
+              <Text style={[styles.locationTitle, { color: colors.text, fontSize: typography.sizes.md }]}>Centro, São Paulo - SP</Text>
+              <Text style={[styles.locationSubtitle, { color: colors.textSecondary, fontSize: typography.sizes.sm }]}>Visto pela última vez às 10:30</Text>
             </View>
           </View>
         </Card>
 
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Resumo Diário</Text>
-        <Card>
-          <Text style={[styles.summaryText, { color: theme.colors.text }]}>
-            Seu pet caminhou <Text style={{ fontWeight: 'bold', color: theme.colors.primary }}>2.5km</Text> hoje e dormiu <Text style={{ fontWeight: 'bold', color: theme.colors.primary }}>12 horas</Text>.
+        <Text style={[styles.sectionTitle, { color: colors.text, fontSize: typography.sizes.lg, marginBottom: spacing.md }]}>
+          Resumo Diário
+        </Text>
+        <Card variant="flat" padding="md">
+          <Text style={[styles.summaryText, { color: colors.text, fontSize: typography.sizes.md }]}>
+            Seu pet caminhou <Text style={{ fontWeight: 'bold', color: colors.primary }}>2.5km</Text> hoje e dormiu <Text style={{ fontWeight: 'bold', color: colors.primary }}>12 horas</Text>.
           </Text>
         </Card>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  mainContainer: {
     flex: 1,
   },
   loadingContainer: {
@@ -171,80 +169,61 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    padding: 20,
+    flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 32,
-    marginTop: 10,
-  },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginTop: 4,
-    fontWeight: '500',
+  avatarButton: {
+    width: 40,
+    height: 40,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 3,
-    borderColor: '#FFF',
+    width: 40,
+    height: 40,
   },
   avatarPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#DDD',
+  },
+  welcomeSection: {
+    marginBottom: 24,
+  },
+  welcomeText: {
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    marginTop: 2,
+    fontWeight: '500',
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 16,
-    letterSpacing: -0.5,
+    fontWeight: 'bold',
   },
-  statsGrid: {
+  vitalsGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginBottom: 16,
   },
-  statCard: {
-    width: '48%',
-    padding: 12,
-  },
-  locationCard: {
-    padding: 16,
-  },
-  locationHeader: {
+  locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   locationIcon: {
     width: 48,
     height: 48,
-    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
+  locationInfo: {
+    flex: 1,
+  },
   locationTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    marginBottom: 2,
   },
-  locationSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
-  },
+  locationSubtitle: {},
   summaryText: {
-    fontSize: 15,
     lineHeight: 22,
   },
 });

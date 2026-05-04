@@ -2,7 +2,7 @@ import { userStorage, User } from '../storage/userStorage';
 
 export const authService = {
   async signIn(login: string, password: string): Promise<User | null> {
-    await new Promise(resolve => setTimeout(resolve, 800)); //Simulação de delay
+    await new Promise(resolve => setTimeout(resolve, 800));
 
     let user: User | null = null;
 

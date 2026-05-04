@@ -18,16 +18,41 @@ import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { salvar } from '../services/imageApi';
 import { StorageService, PetData } from '../storage';
-import { useAppTheme } from '../context/ThemeContext';
+import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../context/AuthContext';
+import { Header } from '../components/Header';
+
+const Section = ({ title, children }: { title?: string, children: React.ReactNode }) => {
+  const { colors, radius } = useTheme();
+  return (
+    <View style={styles.section}>
+      {title && <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>{title}</Text>}
+      <View style={[styles.sectionBody, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: radius.md }]}>
+        {children}
+      </View>
+    </View>
+  );
+};
+
+const Row = ({ label, children, isLast = false }: { label: string, children: React.ReactNode, isLast?: boolean }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.row, !isLast && { borderBottomWidth: 0.5, borderBottomColor: colors.border }]}>
+      <Text style={[styles.rowLabel, { color: colors.textSecondary, fontSize: 12, marginBottom: 4 }]}>{label}</Text>
+      <View style={styles.rowValue}>{children}</View>
+    </View>
+  );
+};
 
 export const ProfileScreen = () => {
-  const { theme, isDark, themeType, setThemeType } = useAppTheme();
-  const { signOut } = useAuth();
+  const { colors, spacing, radius, typography, isDark, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth();
+  
   const [petName, setPetName] = useState('Max');
   const [breed, setBreed] = useState('Golden Retriever');
   const [age, setAge] = useState('3');
   const [weight, setWeight] = useState('28.5');
+  const [ownerName, setOwnerName] = useState('Carlos Silva');
   const [imagem, setImagem] = useState<string | null | undefined>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,7 +67,10 @@ export const ProfileScreen = () => {
       setBreed(data.breed);
       setAge(data.age);
       setWeight(data.weight);
+      setOwnerName(data.ownerName || user?.name || 'Carlos Silva');
       setImagem(data.image);
+    } else {
+      setOwnerName(user?.name || 'Carlos Silva');
     }
     setIsLoading(false);
   };
@@ -61,7 +89,7 @@ export const ProfileScreen = () => {
 
       if (result.assets != null && result.assets.length > 0) {
         const selectedImage = result.assets[0];
-        if (selectedImage.base64 != null && selectedImage.base64 != undefined) {
+        if (selectedImage.base64 != null) {
           try {
             await salvar(selectedImage.base64);
             setImagem(selectedImage.base64);
@@ -70,6 +98,7 @@ export const ProfileScreen = () => {
               breed,
               age,
               weight,
+              ownerName,
               image: selectedImage.base64
             });
             if (Platform.OS === 'android') {
@@ -93,6 +122,7 @@ export const ProfileScreen = () => {
       breed,
       age,
       weight,
+      ownerName,
       image: imagem
     };
     
@@ -113,93 +143,87 @@ export const ProfileScreen = () => {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
-  const Section = ({ title, children }: { title?: string, children: React.ReactNode }) => (
-    <View style={styles.section}>
-      {title && <Text style={[styles.sectionHeader, { color: theme.colors.textSecondary }]}>{title}</Text>}
-      <View style={[styles.sectionBody, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
-        {children}
-      </View>
-    </View>
-  );
-
-  const Row = ({ label, children, isLast = false }: { label: string, children: React.ReactNode, isLast?: boolean }) => (
-    <View style={[styles.row, !isLast && { borderBottomWidth: 0.5, borderBottomColor: theme.colors.border }]}>
-      <Text style={[styles.rowLabel, { color: theme.colors.text }]}>{label}</Text>
-      <View style={styles.rowValue}>{children}</View>
-    </View>
-  );
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Ajustes</Text>
-        </View>
-
+      <Header title="Perfil do Pet" />
+      
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.profileHeader}>
           <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
             {imagem ? (
               <Image 
                 source={{ uri: `data:image/png;base64,${imagem}` }} 
-                style={styles.profileImage} 
+                style={[styles.profileImage, { borderRadius: 45 }]} 
               />
             ) : (
-              <View style={[styles.placeholderImage, { backgroundColor: theme.colors.card }]}>
-                <Icon name="camera" size={32} color={theme.colors.textSecondary} />
+              <View style={[styles.placeholderImage, { backgroundColor: colors.card, borderRadius: 45 }]}>
+                <Icon name="camera" size={32} color={colors.textSecondary} />
               </View>
             )}
-            <View style={[styles.editBadge, { backgroundColor: theme.colors.primary }]}>
+            <View style={[styles.editBadge, { backgroundColor: colors.primary, borderColor: colors.card }]}>
               <Icon name="pencil" size={14} color="#FFF" />
             </View>
           </TouchableOpacity>
-          <Text style={[styles.profileName, { color: theme.colors.text }]}>{petName}</Text>
-          <Text style={[styles.profileSubtitle, { color: theme.colors.textSecondary }]}>{breed}</Text>
+          <Text style={[styles.profileName, { color: colors.text }]}>{petName}</Text>
+          
+          <View style={[styles.tutorBadge, { backgroundColor: colors.primary + '10' }]}>
+            <Text style={[styles.tutorName, { color: colors.primary, fontSize: typography.sizes.xs }]}>
+              Tutor: {ownerName}
+            </Text>
+          </View>
         </View>
+
+        <Section title="INFORMAÇÕES DO TUTOR">
+          <Row label="Nome do Tutor" isLast>
+            <TextInput
+              style={[styles.input, { color: colors.text }]}
+              value={ownerName}
+              onChangeText={setOwnerName}
+              placeholderTextColor={colors.textSecondary}
+            />
+          </Row>
+        </Section>
 
         <Section title="INFORMAÇÕES DO PET">
           <Row label="Nome">
             <TextInput
-              style={[styles.input, { color: theme.colors.text }]}
+              style={[styles.input, { color: colors.text }]}
               value={petName}
               onChangeText={setPetName}
-              placeholderTextColor={theme.colors.textSecondary}
-              textAlign="right"
+              placeholderTextColor={colors.textSecondary}
             />
           </Row>
           <Row label="Raça">
             <TextInput
-              style={[styles.input, { color: theme.colors.text }]}
+              style={[styles.input, { color: colors.text }]}
               value={breed}
               onChangeText={setBreed}
-              placeholderTextColor={theme.colors.textSecondary}
-              textAlign="right"
+              placeholderTextColor={colors.textSecondary}
             />
           </Row>
           <Row label="Idade">
             <TextInput
-              style={[styles.input, { color: theme.colors.text }]}
+              style={[styles.input, { color: colors.text }]}
               value={age}
               onChangeText={setAge}
               keyboardType="numeric"
-              textAlign="right"
             />
           </Row>
           <Row label="Peso (kg)" isLast>
             <TextInput
-              style={[styles.input, { color: theme.colors.text }]}
+              style={[styles.input, { color: colors.text }]}
               value={weight}
               onChangeText={setWeight}
               keyboardType="numeric"
-              textAlign="right"
             />
           </Row>
         </Section>
@@ -208,24 +232,27 @@ export const ProfileScreen = () => {
           <Row label="Modo Escuro" isLast>
             <Switch
               value={isDark}
-              onValueChange={(val) => setThemeType(val ? 'dark' : 'light')}
-              trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
-              thumbColor={Platform.OS === 'ios' ? undefined : (isDark ? theme.colors.primary : '#f4f3f4')}
+              onValueChange={toggleTheme}
+              trackColor={{ false: colors.border, true: colors.primary + '50' }}
+              thumbColor={isDark ? colors.primary : colors.gray500}
             />
           </Row>
         </Section>
 
-        <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.colors.primary }]} onPress={handleSave}>
+        <TouchableOpacity 
+          style={[styles.saveButton, { backgroundColor: colors.primary, borderRadius: radius.md }]} 
+          onPress={handleSave}
+        >
           <Text style={styles.saveButtonText}>Salvar Alterações</Text>
         </TouchableOpacity>
 
         <Section>
           <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
-            <Text style={[styles.logoutText, { color: theme.colors.danger }]}>Sair da Conta</Text>
+            <Text style={[styles.logoutText, { color: colors.danger }]}>Sair da Conta</Text>
           </TouchableOpacity>
         </Section>
 
-        <Text style={[styles.versionText, { color: theme.colors.textSecondary }]}>PetCare 360 v1.0.0</Text>
+        <Text style={[styles.versionText, { color: colors.textSecondary }]}>PetCare 360 v1.0.0</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -242,19 +269,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-  },
-  title: {
-    fontSize: 34,
-    fontWeight: 'bold',
-    letterSpacing: -1,
-  },
   profileHeader: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 24,
   },
   imageContainer: {
     position: 'relative',
@@ -263,12 +280,10 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 90,
     height: 90,
-    borderRadius: 45,
   },
   placeholderImage: {
     width: 90,
     height: 90,
-    borderRadius: 45,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -282,15 +297,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#FFF',
   },
   profileName: {
     fontSize: 22,
     fontWeight: '700',
   },
-  profileSubtitle: {
-    fontSize: 15,
-    marginTop: 2,
+  tutorBadge: {
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  tutorName: {
+    fontWeight: '600',
   },
   section: {
     marginTop: 24,
@@ -304,50 +323,44 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   sectionBody: {
-    borderRadius: 12,
     borderWidth: Platform.OS === 'android' ? 1 : 0,
     overflow: 'hidden',
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    minHeight: 44,
+    paddingVertical: 8,
   },
   rowLabel: {
-    fontSize: 17,
+    fontWeight: '600',
   },
   rowValue: {
-    flex: 1,
-    alignItems: 'flex-end',
+    width: '100%',
   },
   input: {
-    fontSize: 17,
+    fontSize: 16,
     width: '100%',
-    paddingVertical: 8,
+    paddingVertical: 4,
   },
   saveButton: {
     marginHorizontal: 20,
     marginTop: 32,
-    height: 50,
-    borderRadius: 12,
+    height: 52,
     justifyContent: 'center',
     alignItems: 'center',
   },
   saveButtonText: {
     color: '#FFF',
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   logoutRow: {
-    height: 44,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logoutText: {
-    fontSize: 17,
-    fontWeight: '400',
+    fontSize: 16,
+    fontWeight: '500',
   },
   versionText: {
     textAlign: 'center',

@@ -1,144 +1,137 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, StatusBar } from 'react-native';
-import { useAppTheme } from '../context/ThemeContext';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '../components/Card';
+import { Header } from '../components/Header';
 import { InfoCard } from '../components/InfoCard';
+import { useTheme } from '../hooks/useTheme';
 
 export const HealthScreen = () => {
-  const { theme, isDark } = useAppTheme();
+  const { colors, spacing, typography } = useTheme();
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Saúde</Text>
-        </View>
-        
-        <Text style={[styles.sectionHeader, { color: theme.colors.textSecondary }]}>RITMO CARDÍACO</Text>
-        <Card>
-          <View style={styles.row}>
+    <View style={[styles.mainContainer, { backgroundColor: colors.background }]}>
+      <Header title="Saúde" />
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, { padding: spacing.lg }]}>
+        <Card style={styles.vitalCard} variant="elevated">
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>RITMO CARDÍACO</Text>
+          <View style={styles.vitalRow}>
             <InfoCard 
               label="Atual" 
-              value="110" 
+              value="84" 
               unit="bpm" 
-              icon="heart-pulse"
-              iconColor={theme.colors.secondary} 
+              icon="heart-pulse" 
+              iconColor={colors.secondary} 
             />
             <InfoCard 
-              label="Média (24h)" 
-              value="105" 
+              label="Média" 
+              value="78" 
               unit="bpm" 
-              icon="chart-bell-curve"
-              iconColor={theme.colors.textSecondary} 
+              icon="chart-line" 
+              iconColor={colors.textSecondary} 
             />
           </View>
-          <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
-          <Text style={[styles.statusText, { color: theme.colors.textSecondary }]}>
-            O ritmo cardíaco está estável e dentro da normalidade para um pet desta raça.
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <Text style={[styles.statusText, { color: colors.textSecondary }]}>
+            O ritmo cardíaco de Max está dentro da faixa normal para o repouso.
           </Text>
         </Card>
 
-        <Text style={[styles.sectionHeader, { color: theme.colors.textSecondary }]}>TEMPERATURA</Text>
-        <Card>
-          <View style={styles.row}>
+        <Card style={styles.vitalCard} variant="elevated">
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>TEMPERATURA</Text>
+          <View style={styles.vitalRow}>
             <InfoCard 
               label="Atual" 
               value="38.5" 
               unit="°C" 
-              icon="thermometer"
-              iconColor={theme.colors.success} 
+              icon="thermometer" 
+              iconColor={colors.success} 
             />
             <InfoCard 
-              label="Mín/Máx" 
-              value="38.1 - 39" 
+              label="Média" 
+              value="38.2" 
               unit="°C" 
-              icon="arrow-up-down"
-              iconColor={theme.colors.textSecondary} 
+              icon="history" 
+              iconColor={colors.textSecondary} 
             />
           </View>
-          <View style={[styles.progressContainer, { backgroundColor: theme.colors.background }]}>
-            <View style={[styles.progressBar, { width: '65%', backgroundColor: theme.colors.success }]} />
+          <View style={[styles.progressContainer, { backgroundColor: colors.background }]}>
+            <View style={[styles.progressBar, { width: '65%', backgroundColor: colors.success }]} />
           </View>
-          <Text style={[styles.statusText, { color: theme.colors.textSecondary }]}>
-            Temperatura ideal. Nenhuma alteração febril detectada.
+          <Text style={[styles.statusText, { color: colors.textSecondary }]}>
+            Temperatura estável. Nenhuma alteração detectada nas últimas 24h.
           </Text>
         </Card>
 
-        <Text style={[styles.sectionHeader, { color: theme.colors.textSecondary }]}>ATIVIDADE</Text>
-        <Card>
-          <View style={styles.row}>
+        <Card style={styles.vitalCard} variant="elevated">
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ATIVIDADE</Text>
+          <View style={styles.vitalRow}>
             <InfoCard 
               label="Passos" 
               value="4.250" 
-              icon="walk"
-              iconColor={theme.colors.primary} 
+              icon="walk" 
+              iconColor={colors.primary} 
             />
             <InfoCard 
-              label="Calorias" 
-              value="180" 
-              unit="kcal" 
-              icon="fire"
-              iconColor={theme.colors.warning} 
+              label="Meta" 
+              value="6.000" 
+              icon="target" 
+              iconColor={colors.warning} 
             />
           </View>
-          <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
-          <Text style={[styles.statusText, { color: theme.colors.textSecondary }]}>
-            Seu pet está 15% mais ativo do que ontem!
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <Text style={[styles.statusText, { color: colors.textSecondary }]}>
+            Max está mais ativo hoje do que ontem. Continue assim!
           </Text>
         </Card>
 
-        <Card style={[styles.tipsCard, { backgroundColor: theme.colors.primary }]}>
-          <Text style={[styles.tipsTitle, { color: '#FFF' }]}>Dica de Saúde</Text>
-          <Text style={[styles.tipsText, { color: '#FFF' }]}>
-            Lembre-se de manter a água sempre fresca, especialmente após períodos de alta atividade.
-          </Text>
+        <Card style={[styles.tipsCard, { backgroundColor: colors.primary }]}>
+          <MaterialCommunityIcons name="lightbulb-on-outline" size={32} color="white" />
+          <View style={styles.tipsContent}>
+            <Text style={styles.tipsTitle}>Dica de Saúde</Text>
+            <Text style={styles.tipsText}>
+              Mantenha a hidratação de Max constante em dias quentes para evitar flutuações na temperatura.
+            </Text>
+          </View>
         </Card>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  mainContainer: {
     flex: 1,
   },
   container: {
-    padding: 20,
-    paddingBottom: 40,
+    flex: 1,
   },
-  header: {
-    marginBottom: 24,
-    marginTop: 10,
-  },
-  headerTitle: {
-    fontSize: 34,
-    fontWeight: 'bold',
-    letterSpacing: -1,
+  content: {},
+  vitalCard: {
+    padding: 16,
+    marginBottom: 16,
   },
   sectionHeader: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 8,
-    marginLeft: 16,
-    textTransform: 'uppercase',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    letterSpacing: 1,
   },
-  row: {
+  vitalRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    marginBottom: 16,
   },
   divider: {
     height: 1,
-    marginVertical: 12,
+    marginBottom: 12,
   },
   statusText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
   },
   progressContainer: {
     height: 8,
     borderRadius: 4,
-    marginTop: 16,
     marginBottom: 12,
     overflow: 'hidden',
   },
@@ -147,18 +140,25 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   tipsCard: {
-    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 20,
-    borderRadius: 20,
+    marginTop: 8,
+    borderWidth: 0,
+  },
+  tipsContent: {
+    flex: 1,
+    marginLeft: 16,
   },
   tipsTitle: {
-    fontSize: 18,
+    color: 'white',
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   tipsText: {
-    fontSize: 15,
-    lineHeight: 22,
-    opacity: 0.9,
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

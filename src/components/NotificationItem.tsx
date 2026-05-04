@@ -1,48 +1,46 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useAppTheme } from '../context/ThemeContext';
-import { Card } from './Card';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Card } from './Card';
+import { useTheme } from '../hooks/useTheme';
 
-interface NotificationItemProps {
+interface NotificationProps {
+  type: 'success' | 'warning' | 'error' | 'info';
   title: string;
   message: string;
   time: string;
-  type: 'success' | 'warning' | 'danger' | 'info';
 }
 
-type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
+export const NotificationItem = ({ type, title, message, time }: NotificationProps) => {
+  const { colors, typography, spacing } = useTheme();
 
-export const NotificationItem = ({ title, message, time, type }: NotificationItemProps) => {
-  const { theme } = useAppTheme();
-
-  const getIconConfig = (): { name: IconName; color: string } => {
+  const getIcon = () => {
     switch (type) {
       case 'success':
-        return { name: 'check-circle-outline', color: theme.colors.success };
+        return { name: 'check-circle-outline', color: colors.success };
       case 'warning':
-        return { name: 'alert-outline', color: theme.colors.warning };
-      case 'danger':
-        return { name: 'alert-octagon-outline', color: theme.colors.danger };
+        return { name: 'alert-outline', color: colors.warning };
+      case 'error':
+        return { name: 'alert-octagon-outline', color: colors.danger };
       default:
-        return { name: 'information-outline', color: theme.colors.primary };
+        return { name: 'information-outline', color: colors.primary };
     }
   };
 
-  const iconConfig = getIconConfig();
+  const icon = getIcon();
 
   return (
-    <Card style={styles.card}>
-      <View style={styles.container}>
-        <View style={[styles.iconContainer, { backgroundColor: iconConfig.color + '20' }]}>
-          <MaterialCommunityIcons name={iconConfig.name} size={24} color={iconConfig.color} />
+    <Card style={styles.container}>
+      <View style={styles.content}>
+        <View style={[styles.iconContainer, { backgroundColor: icon.color + '15' }]}>
+          <MaterialCommunityIcons name={icon.name as any} size={24} color={icon.color} />
         </View>
-        <View style={styles.content}>
+        <View style={styles.textContainer}>
           <View style={styles.header}>
-            <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
-            <Text style={[styles.time, { color: theme.colors.textSecondary }]}>{time}</Text>
+            <Text style={[styles.title, { color: colors.text, fontSize: typography.sizes.md }]}>{title}</Text>
+            <Text style={[styles.time, { color: colors.textSecondary, fontSize: typography.sizes.xs }]}>{time}</Text>
           </View>
-          <Text style={[styles.message, { color: theme.colors.textSecondary }]} numberOfLines={2}>
+          <Text style={[styles.message, { color: colors.textSecondary, fontSize: typography.sizes.sm }]} numberOfLines={2}>
             {message}
           </Text>
         </View>
@@ -52,41 +50,35 @@ export const NotificationItem = ({ title, message, time, type }: NotificationIte
 };
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 12,
-    marginHorizontal: 20,
+  container: {
     marginBottom: 12,
   },
-  container: {
+  content: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconContainer: {
     width: 48,
     height: 48,
-    borderRadius: 14,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
-  content: {
+  textContainer: {
     flex: 1,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   title: {
-    fontSize: 16,
     fontWeight: 'bold',
   },
-  time: {
-    fontSize: 12,
-  },
+  time: {},
   message: {
-    fontSize: 14,
-    lineHeight: 18,
+    lineHeight: 20,
   },
 });
