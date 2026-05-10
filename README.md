@@ -1,4 +1,4 @@
-# PetCare 360 (Mobile)
+# PetCare 360
 ![Expo](https://img.shields.io/badge/Expo-5D5FEF?style=for-the-badge&logo=expo&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-5D5FEF?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![React Native](https://img.shields.io/badge/React_Native-5D5FEF?style=for-the-badge&logo=react&logoColor=white)
@@ -44,24 +44,37 @@ O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade
 - Gerenciador de pacotes (npm ou yarn).
 - Aplicativo **Expo Go** instalado no dispositivo móvel ou emulador configurado.
 
+### Configuração (Variáveis de Ambiente)
+O projeto utiliza o Firebase para armazenamento de imagens. Crie um arquivo `.env` na raiz do projeto e configure as seguintes variáveis:
+```env
+EXPO_PUBLIC_FIREBASE_BASE_URL=https://seu-projeto.firebaseio.com
+EXPO_PUBLIC_FIREBASE_API_TOKEN=seu-api-token
+```
+
 ### Instalação
-1. Clone o repositório.
+1. Clone o repositório:
    ```bash
     git clone https://github.com/PetCare-360/Sprint1-Mobile
     cd Sprint1-Mobile
     ```
-2. Na raiz do projeto, instale as dependências:
-***[Dependências](#dependências)***
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
 
 ### Execução
-1. Inicie o servidor do Expo:
-   ```bash
-   npx expo start
-   ```
-2. Escaneie o QR Code gerado com o aplicativo Expo Go no seu celular ou pressione `a` para Android ou `i` para iOS se estiver usando emuladores.
+Inicie o servidor do Expo utilizando um dos comandos abaixo:
+- `npm start`: Inicia o Expo Go (QR Code).
+- `npm run android`: Inicia no emulador Android.
+- `npm run web`: Inicia a versão web.
+
+### Credenciais de Teste
+Para explorar os diferentes fluxos da aplicação, utilize os seguintes acessos:
+- **Veterinário:** Login: `admin` | Senha: `admin`
+- **Tutor:** Login: `pet` | Senha: `pet`
 
 
-### Principais Dependências
+## Principais Dependências
 
 O projeto depende das seguintes bibliotecas principais:
 
@@ -73,20 +86,6 @@ O projeto depende das seguintes bibliotecas principais:
 - **@react-native-async-storage/async-storage:** Armazenamento persistente de dados.
 - **@expo/vector-icons:** Biblioteca de ícones (MaterialCommunityIcons).
 - **react-native-safe-area-context & screens:** Dependências fundamentais para navegação segura e performática.
-
-#### Dependências
-Para instalar as dependências individualmente via terminal:
-```bash
-npx expo install @react-navigation/native
-npx expo install @react-navigation/native-stack
-npx expo install @react-navigation/bottom-tabs
-npx expo install react-native-maps
-npx expo install expo-image-picker
-npx expo install @react-native-async-storage/async-storage
-npx expo install @expo/vector-icons 
-npx expo install react-native-screens
-npx expo install axios
-```
 
 ## Design System
 
@@ -129,14 +128,11 @@ A aplicação gerencia múltiplos fluxos de acesso garantindo segurança e segme
 - **Interface Orientada à Decisão:** Veterinários recebem priorização de pacientes que realmente precisam de atenção imediata.
 - **Offline First (Básico):** Uso de cache local para garantir que dados essenciais estejam disponíveis mesmo sem conexão.
 
-## Link Youtube
-[Demonstração Vídeo](https://)
-
 ## Autores
 Artur Correia - [GitHub](https://github.com/artcorreia)<br>
 Gabriel H - [GitHub](https://github.com/gabrielhensg)<br>
-Josè Ricardo - [GitHub](https://github.com/jr-iannuzzi)<br> 
-Rafael de Freitas - [GitHub](https://github.com/devfreitas)<br> 
+José Ricardo - [GitHub](https://github.com/jr-iannuzzi)<br> 
+Rafael de Freitas - [GitHub](https://github.com/devfreita)<br> 
 Rafael Pascotte - [GitHub](https://github.com/pascotterafaaa)
 
 ## Licença
