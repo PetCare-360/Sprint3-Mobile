@@ -1,13 +1,5 @@
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Switch,
-  ScrollView,
-  Alert
-} from 'react-native';
+import { View, Text,  StyleSheet, TouchableOpacity, Switch,ScrollView,Alert} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks/useTheme';

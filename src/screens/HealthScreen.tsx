@@ -1,96 +1,117 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '../components/Card';
 import { Header } from '../components/Header';
 import { InfoCard } from '../components/InfoCard';
 import { useTheme } from '../hooks/useTheme';
 
+const { width } = Dimensions.get('window');
+
 export const HealthScreen = () => {
-  const { colors, spacing, typography } = useTheme();
+  const { colors, spacing, typography, radius, isDark } = useTheme();
 
   return (
     <View style={[styles.mainContainer, { backgroundColor: colors.background }]}>
-      <Header title="Saúde" />
-      <ScrollView style={styles.container} contentContainerStyle={[styles.content, { padding: spacing.lg }]}>
-        <Card style={styles.vitalCard} variant="elevated">
-          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>RITMO CARDÍACO</Text>
-          <View style={styles.vitalRow}>
-            <InfoCard 
-              label="Atual" 
-              value="84" 
-              unit="bpm" 
-              icon="heart-pulse" 
-              iconColor={colors.secondary} 
-            />
-            <InfoCard 
-              label="Média" 
-              value="78" 
-              unit="bpm" 
-              icon="chart-line" 
-              iconColor={colors.textSecondary} 
-            />
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <Text style={[styles.statusText, { color: colors.textSecondary }]}>
-            O ritmo cardíaco de Max está dentro da faixa normal para o repouso.
+      <Header title="Saúde & Bem-estar" />
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={[styles.content, { padding: spacing.lg }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.headerInfo}>
+          <Text style={[styles.title, { color: colors.text }]}>Estado Geral</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Max está com todos os sinais vitais estáveis.
           </Text>
+        </View>
+
+        <Card style={styles.vitalCard} variant="elevated" padding="lg">
+          <View style={styles.cardHeader}>
+            <View style={[styles.iconBox, { backgroundColor: colors.secondary + '15' }]}>
+              <MaterialCommunityIcons name="heart-pulse" size={20} color={colors.secondary} />
+            </View>
+            <Text style={[styles.sectionHeader, { color: colors.text }]}>Ritmo Cardíaco</Text>
+          </View>
+          <View style={styles.vitalRow}>
+            <View style={styles.vitalItem}>
+              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>ATUAL</Text>
+              <Text style={[styles.vitalValue, { color: colors.text }]}>84 <Text style={styles.vitalUnit}>bpm</Text></Text>
+            </View>
+            <View style={[styles.dividerVertical, { backgroundColor: colors.divider }]} />
+            <View style={styles.vitalItem}>
+              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>MÉDIA</Text>
+              <Text style={[styles.vitalValue, { color: colors.textSecondary }]}>78 <Text style={styles.vitalUnit}>bpm</Text></Text>
+            </View>
+          </View>
+          <View style={[styles.statusBox, { backgroundColor: colors.divider + '40' }]}>
+            <MaterialCommunityIcons name="information-outline" size={16} color={colors.textSecondary} />
+            <Text style={[styles.statusText, { color: colors.textSecondary }]}>
+              Dentro da faixa normal para o repouso.
+            </Text>
+          </View>
         </Card>
 
-        <Card style={styles.vitalCard} variant="elevated">
-          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>TEMPERATURA</Text>
+        <Card style={styles.vitalCard} variant="elevated" padding="lg">
+          <View style={styles.cardHeader}>
+            <View style={[styles.iconBox, { backgroundColor: colors.success + '15' }]}>
+              <MaterialCommunityIcons name="thermometer" size={20} color={colors.success} />
+            </View>
+            <Text style={[styles.sectionHeader, { color: colors.text }]}>Temperatura</Text>
+          </View>
           <View style={styles.vitalRow}>
-            <InfoCard 
-              label="Atual" 
-              value="38.5" 
-              unit="°C" 
-              icon="thermometer" 
-              iconColor={colors.success} 
-            />
-            <InfoCard 
-              label="Média" 
-              value="38.2" 
-              unit="°C" 
-              icon="history" 
-              iconColor={colors.textSecondary} 
-            />
+            <View style={styles.vitalItem}>
+              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>ATUAL</Text>
+              <Text style={[styles.vitalValue, { color: colors.text }]}>38.5 <Text style={styles.vitalUnit}>°C</Text></Text>
+            </View>
+            <View style={[styles.dividerVertical, { backgroundColor: colors.divider }]} />
+            <View style={styles.vitalItem}>
+              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>MÉDIA</Text>
+              <Text style={[styles.vitalValue, { color: colors.textSecondary }]}>38.2 <Text style={styles.vitalUnit}>°C</Text></Text>
+            </View>
           </View>
-          <View style={[styles.progressContainer, { backgroundColor: colors.background }]}>
-            <View style={[styles.progressBar, { width: '65%', backgroundColor: colors.success }]} />
+          <View style={styles.progressWrapper}>
+            <View style={styles.progressLabels}>
+              <Text style={[styles.progressText, { color: colors.textSecondary }]}>Estável</Text>
+              <Text style={[styles.progressText, { color: colors.textSecondary }]}>100%</Text>
+            </View>
+            <View style={[styles.progressContainer, { backgroundColor: isDark ? colors.divider : colors.gray100 }]}>
+              <View style={[styles.progressBar, { width: '85%', backgroundColor: colors.success }]} />
+            </View>
           </View>
-          <Text style={[styles.statusText, { color: colors.textSecondary }]}>
-            Temperatura estável. Nenhuma alteração detectada nas últimas 24h.
-          </Text>
         </Card>
 
-        <Card style={styles.vitalCard} variant="elevated">
-          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ATIVIDADE</Text>
-          <View style={styles.vitalRow}>
-            <InfoCard 
-              label="Passos" 
-              value="4.250" 
-              icon="walk" 
-              iconColor={colors.primary} 
-            />
-            <InfoCard 
-              label="Meta" 
-              value="6.000" 
-              icon="target" 
-              iconColor={colors.warning} 
-            />
+        <Card style={styles.vitalCard} variant="elevated" padding="lg">
+          <View style={styles.cardHeader}>
+            <View style={[styles.iconBox, { backgroundColor: colors.primary + '15' }]}>
+              <MaterialCommunityIcons name="run" size={20} color={colors.primary} />
+            </View>
+            <Text style={[styles.sectionHeader, { color: colors.text }]}>Atividade Diária</Text>
           </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <Text style={[styles.statusText, { color: colors.textSecondary }]}>
-            Max está mais ativo hoje do que ontem. Continue assim!
-          </Text>
+          <View style={styles.vitalRow}>
+            <View style={styles.vitalItem}>
+              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>PASSOS</Text>
+              <Text style={[styles.vitalValue, { color: colors.text }]}>4.250</Text>
+            </View>
+            <View style={[styles.dividerVertical, { backgroundColor: colors.divider }]} />
+            <View style={styles.vitalItem}>
+              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>META</Text>
+              <Text style={[styles.vitalValue, { color: colors.warning }]}>6.000</Text>
+            </View>
+          </View>
+          <View style={[styles.progressContainer, { backgroundColor: isDark ? colors.divider : colors.gray100, marginTop: 12 }]}>
+            <View style={[styles.progressBar, { width: '70%', backgroundColor: colors.primary }]} />
+          </View>
         </Card>
 
-        <Card style={[styles.tipsCard, { backgroundColor: colors.primary }]}>
-          <MaterialCommunityIcons name="lightbulb-on-outline" size={32} color="white" />
+        <Card style={[styles.tipsCard, { backgroundColor: colors.primary }]} variant="glass">
+          <View style={styles.tipsIconContainer}>
+            <MaterialCommunityIcons name="lightbulb-variant-outline" size={28} color="white" />
+          </View>
           <View style={styles.tipsContent}>
             <Text style={styles.tipsTitle}>Dica de Saúde</Text>
             <Text style={styles.tipsText}>
-              Mantenha a hidratação de Max constante em dias quentes para evitar flutuações na temperatura.
+              Mantenha a hidratação de Max constante em dias quentes para evitar flutuações.
             </Text>
           </View>
         </Card>
@@ -106,45 +127,115 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {},
+  content: {
+    paddingBottom: 40,
+  },
+  headerInfo: {
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 14,
+    marginTop: 4,
+    fontWeight: '500',
+  },
   vitalCard: {
-    padding: 16,
     marginBottom: 16,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
   sectionHeader: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 16,
-    letterSpacing: 1,
+    letterSpacing: -0.3,
   },
   vitalRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  divider: {
-    height: 1,
-    marginBottom: 12,
+  vitalItem: {
+    flex: 1,
+  },
+  vitalLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  vitalValue: {
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  vitalUnit: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  dividerVertical: {
+    width: 1,
+    height: 40,
+    marginHorizontal: 16,
+  },
+  statusBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 8,
   },
   statusText: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    marginLeft: 8,
+    fontWeight: '500',
+  },
+  progressWrapper: {
+    marginTop: 8,
+  },
+  progressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  progressText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   progressContainer: {
-    height: 8,
-    borderRadius: 4,
-    marginBottom: 12,
+    height: 6,
+    borderRadius: 3,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
   },
   tipsCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
     marginTop: 8,
     borderWidth: 0,
+  },
+  tipsIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tipsContent: {
     flex: 1,
@@ -154,11 +245,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   tipsText: {
     color: 'rgba(255,255,255,0.9)',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
   },
 });
+

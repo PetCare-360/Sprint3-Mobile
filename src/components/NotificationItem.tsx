@@ -9,38 +9,73 @@ interface NotificationProps {
   title: string;
   message: string;
   time: string;
+  read?: boolean;
 }
 
-export const NotificationItem = ({ type, title, message, time }: NotificationProps) => {
-  const { colors, typography, spacing } = useTheme();
+export const NotificationItem = ({ type, title, message, time, read = false }: NotificationProps) => {
+  const { colors, typography, spacing, radius, isDark } = useTheme();
 
-  const getIcon = () => {
+  const getIconConfig = () => {
     switch (type) {
       case 'success':
-        return { name: 'check-circle-outline', color: colors.success };
+        return { name: 'check-circle', color: colors.success };
       case 'warning':
-        return { name: 'alert-outline', color: colors.warning };
+        return { name: 'alert', color: colors.warning };
       case 'error':
-        return { name: 'alert-octagon-outline', color: colors.danger };
+        return { name: 'alert-octagon', color: colors.danger };
       default:
-        return { name: 'information-outline', color: colors.primary };
+        return { name: 'information', color: colors.primary };
     }
   };
 
-  const icon = getIcon();
+  const config = getIconConfig();
 
   return (
-    <Card style={styles.container}>
+    <Card 
+      style={[
+        styles.container, 
+        !read && { borderLeftWidth: 4, borderLeftColor: config.color }
+      ]}
+      padding="md"
+      variant={read ? 'flat' : 'elevated'}
+    >
       <View style={styles.content}>
-        <View style={[styles.iconContainer, { backgroundColor: icon.color + '15' }]}>
-          <MaterialCommunityIcons name={icon.name as any} size={24} color={icon.color} />
+        <View style={[
+          styles.iconContainer, 
+          { 
+            backgroundColor: isDark ? config.color + '20' : config.color + '10',
+            borderRadius: radius.lg
+          }
+        ]}>
+          <MaterialCommunityIcons name={config.name as any} size={24} color={config.color} />
         </View>
         <View style={styles.textContainer}>
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text, fontSize: typography.sizes.md }]}>{title}</Text>
-            <Text style={[styles.time, { color: colors.textSecondary, fontSize: typography.sizes.xs }]}>{time}</Text>
+            <Text 
+              style={[
+                styles.title, 
+                { 
+                  color: colors.text, 
+                  fontSize: typography.sizes.md,
+                  fontWeight: read ? typography.weights.semibold : typography.weights.bold 
+                }
+              ]}
+            >
+              {title}
+            </Text>
+            <Text style={[styles.time, { color: colors.textSecondary, fontSize: 11 }]}>{time}</Text>
           </View>
-          <Text style={[styles.message, { color: colors.textSecondary, fontSize: typography.sizes.sm }]} numberOfLines={2}>
+          <Text 
+            style={[
+              styles.message, 
+              { 
+                color: read ? colors.textSecondary : colors.text, 
+                fontSize: typography.sizes.sm,
+                lineHeight: 20
+              }
+            ]} 
+            numberOfLines={2}
+          >
             {message}
           </Text>
         </View>
@@ -51,19 +86,18 @@ export const NotificationItem = ({ type, title, message, time }: NotificationPro
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   content: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   iconContainer: {
     width: 48,
     height: 48,
-    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   textContainer: {
     flex: 1,
@@ -75,10 +109,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   title: {
-    fontWeight: 'bold',
+    letterSpacing: -0.2,
   },
-  time: {},
+  time: {
+    fontWeight: '500',
+  },
   message: {
-    lineHeight: 20,
+    opacity: 0.8,
   },
 });

@@ -12,9 +12,9 @@ export const shadows = {
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 12,
       },
       android: {
         elevation: 2,
@@ -26,11 +26,11 @@ export const shadows = {
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.1,
-        shadowRadius: 16,
+        shadowOpacity: 0.08,
+        shadowRadius: 24,
       },
       android: {
-        elevation: 4,
+        elevation: 6,
       },
     }),
   },
@@ -38,15 +38,30 @@ export const shadows = {
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 12 },
+        shadowOffset: { width: 0, height: 16 },
         shadowOpacity: 0.12,
-        shadowRadius: 24,
+        shadowRadius: 40,
+      },
+      android: {
+        elevation: 12,
+      },
+    }),
+  },
+  primary: {
+    ...Platform.select({
+      ios: {
+        shadowColor: '#6366F1',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
       },
       android: {
         elevation: 8,
+        shadowColor: '#6366F1',
       },
     }),
   },
 };
 
 export type Shadow = keyof typeof shadows;
+

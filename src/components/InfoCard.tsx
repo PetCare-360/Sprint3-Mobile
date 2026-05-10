@@ -13,32 +13,60 @@ interface InfoCardProps {
 }
 
 export const InfoCard = ({ label, value, unit, icon, iconColor }: InfoCardProps) => {
-  const { colors, typography, spacing } = useTheme();
+  const { colors, typography, spacing, radius, isDark } = useTheme();
 
   const color = iconColor || colors.primary;
 
   return (
-    <Card style={styles.card} padding="sm">
+    <Card style={styles.card} padding="md" variant="elevated">
       <View style={styles.container}>
-        <View style={[styles.iconContainer, { backgroundColor: color + '15' }]}>
-          {icon && <MaterialCommunityIcons name={icon as any} size={20} color={color} />}
+        <View style={[
+          styles.iconContainer, 
+          { 
+            backgroundColor: isDark ? color + '20' : color + '10',
+            borderRadius: radius.lg
+          }
+        ]}>
+          {icon && <MaterialCommunityIcons name={icon as any} size={22} color={color} />}
         </View>
         <View style={styles.content}>
           <Text 
             numberOfLines={1} 
-            style={[styles.label, { color: colors.textSecondary, fontSize: typography.sizes.xs }]}
+            style={[
+              styles.label, 
+              { 
+                color: colors.textSecondary, 
+                fontSize: 11,
+                fontWeight: typography.weights.bold,
+              }
+            ]}
           >
             {label}
           </Text>
           <View style={styles.valueRow}>
             <Text 
               numberOfLines={1}
-              style={[styles.value, { color: colors.text, fontSize: typography.sizes.md }]}
+              style={[
+                styles.value, 
+                { 
+                  color: colors.text, 
+                  fontSize: typography.sizes.lg,
+                  fontWeight: typography.weights.bold,
+                  letterSpacing: -0.5,
+                }
+              ]}
             >
               {value}
             </Text>
             {unit && (
-              <Text style={[styles.unit, { color: colors.textSecondary, fontSize: typography.sizes.xs }]}>
+              <Text style={[
+                styles.unit, 
+                { 
+                  color: colors.textSecondary, 
+                  fontSize: typography.sizes.xs,
+                  fontWeight: typography.weights.medium,
+                }
+              ]}>
                 {unit}
               </Text>
             )}
@@ -52,38 +80,33 @@ export const InfoCard = ({ label, value, unit, icon, iconColor }: InfoCardProps)
 const styles = StyleSheet.create({
   card: {
     width: '48%',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginBottom: 12,
   },
   content: {
-    flex: 1,
+    width: '100%',
   },
   label: {
-    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
+    letterSpacing: 0.8,
+    marginBottom: 4,
   },
   valueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
-  value: {
-    fontWeight: '700',
-  },
+  value: {},
   unit: {
     marginLeft: 2,
-    fontWeight: '500',
   },
 });

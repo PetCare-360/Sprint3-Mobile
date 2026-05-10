@@ -4,9 +4,11 @@ export const radius = {
   sm: 8,
   md: 12, 
   lg: 16,
-  xl: 20,
-  xxl: 30,
+  xl: 24,
+  xxl: 32,
+  hg: 48,
   round: 9999,
 };
 
 export type Radius = keyof typeof radius;
+

@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { View, StyleSheet, ViewStyle, StyleProp, Platform } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 
 interface CardProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
-  variant?: 'elevated' | 'outlined' | 'flat';
-  padding?: 'none' | 'sm' | 'md' | 'lg';
+  variant?: 'elevated' | 'outlined' | 'flat' | 'glass';
+  padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
 }
 
 export const Card = ({ 
@@ -20,13 +20,28 @@ export const Card = ({
   const getVariantStyle = () => {
     switch (variant) {
       case 'elevated':
-        return isDark 
-          ? { borderWidth: 1, borderColor: colors.border } 
-          : { ...shadows.md };
+        return {
+          ...shadows.md,
+          borderWidth: isDark ? 1 : 0,
+          borderColor: isDark ? colors.border : 'transparent',
+        };
       case 'outlined':
-        return { borderWidth: 1, borderColor: colors.border };
+        return { 
+          borderWidth: 1.5, 
+          borderColor: colors.border,
+          backgroundColor: 'transparent'
+        };
       case 'flat':
-        return { backgroundColor: isDark ? colors.surface : colors.gray100 };
+        return { 
+          backgroundColor: isDark ? colors.surface : colors.divider,
+        };
+      case 'glass':
+        return {
+          backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          borderWidth: 1,
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.05)',
+          ...shadows.md,
+        };
       default:
         return {};
     }
@@ -37,7 +52,7 @@ export const Card = ({
       styles.card, 
       { 
         backgroundColor: colors.card,
-        borderRadius: radius.xl,
+        borderRadius: radius.xxl,
         padding: spacing[padding],
       }, 
       getVariantStyle(),
@@ -51,6 +66,11 @@ export const Card = ({
 const styles = StyleSheet.create({
   card: {
     marginBottom: 16,
-    overflow: 'hidden',
+    ...Platform.select({
+      web: {
+        transition: 'all 0.3s ease',
+      }
+    })
   },
 });
+

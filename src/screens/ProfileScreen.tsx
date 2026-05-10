@@ -1,19 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  ToastAndroid,
-  ActivityIndicator,
-  Switch,
-} from 'react-native';
+import {View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, KeyboardAvoidingView, Platform, Alert, ToastAndroid, ActivityIndicator, Switch} from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { salvar } from '../services/imageApi';
@@ -21,31 +7,12 @@ import { StorageService, PetData } from '../storage';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../context/AuthContext';
 import { Header } from '../components/Header';
-
-const Section = ({ title, children }: { title?: string, children: React.ReactNode }) => {
-  const { colors, radius } = useTheme();
-  return (
-    <View style={styles.section}>
-      {title && <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>{title}</Text>}
-      <View style={[styles.sectionBody, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: radius.md }]}>
-        {children}
-      </View>
-    </View>
-  );
-};
-
-const Row = ({ label, children, isLast = false }: { label: string, children: React.ReactNode, isLast?: boolean }) => {
-  const { colors } = useTheme();
-  return (
-    <View style={[styles.row, !isLast && { borderBottomWidth: 0.5, borderBottomColor: colors.border }]}>
-      <Text style={[styles.rowLabel, { color: colors.textSecondary, fontSize: 12, marginBottom: 4 }]}>{label}</Text>
-      <View style={styles.rowValue}>{children}</View>
-    </View>
-  );
-};
+import { Button } from '../components/Button';
+import { Card } from '../components/Card';
+import { Input } from '../components/Input';
 
 export const ProfileScreen = () => {
-  const { colors, spacing, radius, typography, isDark, toggleTheme } = useTheme();
+  const { colors, spacing, radius, typography, isDark, toggleTheme, shadows } = useTheme();
   const { user, signOut } = useAuth();
   
   const [petName, setPetName] = useState('Max');
@@ -154,19 +121,22 @@ export const ProfileScreen = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <Header title="Perfil do Pet" />
+      <Header title="Perfil" />
       
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={[styles.scrollContent, { padding: spacing.lg }]} 
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.profileHeader}>
-          <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
+          <TouchableOpacity onPress={pickImage} style={[styles.imageContainer, { ...shadows.md }]}>
             {imagem ? (
               <Image 
                 source={{ uri: `data:image/png;base64,${imagem}` }} 
-                style={[styles.profileImage, { borderRadius: 45 }]} 
+                style={[styles.profileImage, { borderRadius: radius.xxl }]} 
               />
             ) : (
-              <View style={[styles.placeholderImage, { backgroundColor: colors.card, borderRadius: 45 }]}>
-                <Icon name="camera" size={32} color={colors.textSecondary} />
+              <View style={[styles.placeholderImage, { backgroundColor: colors.card, borderRadius: radius.xxl }]}>
+                <Icon name="camera" size={32} color={colors.primary} />
               </View>
             )}
             <View style={[styles.editBadge, { backgroundColor: colors.primary, borderColor: colors.card }]}>
@@ -174,85 +144,99 @@ export const ProfileScreen = () => {
             </View>
           </TouchableOpacity>
           <Text style={[styles.profileName, { color: colors.text }]}>{petName}</Text>
+          <Text style={[styles.profileBreed, { color: colors.textSecondary }]}>{breed}</Text>
           
           <View style={[styles.tutorBadge, { backgroundColor: colors.primary + '10' }]}>
+            <Icon name="account" size={16} color={colors.primary} style={{ marginRight: 6 }} />
             <Text style={[styles.tutorName, { color: colors.primary, fontSize: typography.sizes.xs }]}>
               Tutor: {ownerName}
             </Text>
           </View>
         </View>
 
-        <Section title="INFORMAÇÕES DO TUTOR">
-          <Row label="Nome do Tutor" isLast>
-            <TextInput
-              style={[styles.input, { color: colors.text }]}
-              value={ownerName}
-              onChangeText={setOwnerName}
-              placeholderTextColor={colors.textSecondary}
-            />
-          </Row>
-        </Section>
+        <View style={styles.sectionContainer}>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: spacing.md }]}>
+            Informações do Tutor
+          </Text>
+          <Input
+            label="Nome do Tutor"
+            value={ownerName}
+            onChangeText={setOwnerName}
+            icon={<Icon name="account-outline" size={20} color={colors.primary} />}
+          />
+        </View>
 
-        <Section title="INFORMAÇÕES DO PET">
-          <Row label="Nome">
-            <TextInput
-              style={[styles.input, { color: colors.text }]}
-              value={petName}
-              onChangeText={setPetName}
-              placeholderTextColor={colors.textSecondary}
-            />
-          </Row>
-          <Row label="Raça">
-            <TextInput
-              style={[styles.input, { color: colors.text }]}
-              value={breed}
-              onChangeText={setBreed}
-              placeholderTextColor={colors.textSecondary}
-            />
-          </Row>
-          <Row label="Idade">
-            <TextInput
-              style={[styles.input, { color: colors.text }]}
+        <View style={styles.sectionContainer}>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: spacing.md }]}>
+            Informações do Pet
+          </Text>
+          <Input
+            label="Nome do Pet"
+            value={petName}
+            onChangeText={setPetName}
+            icon={<Icon name="dog" size={20} color={colors.primary} />}
+          />
+          <Input
+            label="Raça"
+            value={breed}
+            onChangeText={setBreed}
+            icon={<Icon name="shape-outline" size={20} color={colors.primary} />}
+          />
+          <View style={styles.rowInputs}>
+            <Input
+              label="Idade"
               value={age}
               onChangeText={setAge}
               keyboardType="numeric"
+              containerStyle={{ flex: 1, marginRight: spacing.md }}
+              icon={<Icon name="calendar-outline" size={20} color={colors.primary} />}
             />
-          </Row>
-          <Row label="Peso (kg)" isLast>
-            <TextInput
-              style={[styles.input, { color: colors.text }]}
+            <Input
+              label="Peso (kg)"
               value={weight}
               onChangeText={setWeight}
               keyboardType="numeric"
+              containerStyle={{ flex: 1 }}
+              icon={<Icon name="weight-kilogram" size={20} color={colors.primary} />}
             />
-          </Row>
-        </Section>
+          </View>
+        </View>
 
-        <Section title="PREFERÊNCIAS">
-          <Row label="Modo Escuro" isLast>
-            <Switch
-              value={isDark}
-              onValueChange={toggleTheme}
-              trackColor={{ false: colors.border, true: colors.primary + '50' }}
-              thumbColor={isDark ? colors.primary : colors.gray500}
-            />
-          </Row>
-        </Section>
+        <View style={styles.sectionContainer}>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: spacing.md }]}>
+            Preferências
+          </Text>
+          <Card padding="md" variant="flat">
+            <View style={styles.preferenceRow}>
+              <View style={styles.preferenceInfo}>
+                <Text style={[styles.preferenceLabel, { color: colors.text }]}>Modo Escuro</Text>
+                <Text style={[styles.preferenceSub, { color: colors.textSecondary }]}>Alterar aparência do app</Text>
+              </View>
+              <Switch
+                value={isDark}
+                onValueChange={toggleTheme}
+                trackColor={{ false: colors.divider, true: colors.primary + '50' }}
+                thumbColor={isDark ? colors.primary : (Platform.OS === 'ios' ? undefined : colors.gray300)}
+              />
+            </View>
+          </Card>
+        </View>
 
-        <TouchableOpacity 
-          style={[styles.saveButton, { backgroundColor: colors.primary, borderRadius: radius.md }]} 
+        <Button 
+          title="Salvar Alterações" 
           onPress={handleSave}
-        >
-          <Text style={styles.saveButtonText}>Salvar Alterações</Text>
-        </TouchableOpacity>
+          style={{ marginTop: spacing.lg }}
+        />
 
-        <Section>
-          <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
-            <Text style={[styles.logoutText, { color: colors.danger }]}>Sair da Conta</Text>
-          </TouchableOpacity>
-        </Section>
+        <Button 
+          title="Sair da Conta" 
+          variant="danger"
+          onPress={handleLogout}
+          style={{ marginTop: spacing.md, backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.danger + '30' }}
+          textStyle={{ color: colors.danger }}
+        />
 
-        <Text style={[styles.versionText, { color: colors.textSecondary }]}>PetCare 360 v1.0.0</Text>
+        <Text style={[styles.versionText, { color: colors.textSecondary }]}>PetCare 360 v1.2.0 • 2026</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -271,100 +255,87 @@ const styles = StyleSheet.create({
   },
   profileHeader: {
     alignItems: 'center',
-    marginVertical: 24,
+    marginBottom: 32,
   },
   imageContainer: {
     position: 'relative',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   profileImage: {
-    width: 90,
-    height: 90,
+    width: 100,
+    height: 100,
   },
   placeholderImage: {
-    width: 90,
-    height: 90,
+    width: 100,
+    height: 100,
     justifyContent: 'center',
     alignItems: 'center',
   },
   editBadge: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    bottom: 2,
+    right: 2,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 3,
   },
   profileName: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: 'bold',
+    letterSpacing: -0.5,
+  },
+  profileBreed: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 2,
   },
   tutorBadge: {
-    marginTop: 8,
+    marginTop: 12,
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   tutorName: {
-    fontWeight: '600',
-  },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 20,
-  },
-  sectionHeader: {
-    fontSize: 13,
-    fontWeight: '400',
-    marginBottom: 8,
-    marginLeft: 16,
-    textTransform: 'uppercase',
-  },
-  sectionBody: {
-    borderWidth: Platform.OS === 'android' ? 1 : 0,
-    overflow: 'hidden',
-  },
-  row: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  rowLabel: {
-    fontWeight: '600',
-  },
-  rowValue: {
-    width: '100%',
-  },
-  input: {
-    fontSize: 16,
-    width: '100%',
-    paddingVertical: 4,
-  },
-  saveButton: {
-    marginHorizontal: 20,
-    marginTop: 32,
-    height: 52,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: '#FFF',
-    fontSize: 16,
     fontWeight: 'bold',
   },
-  logoutRow: {
-    height: 48,
-    justifyContent: 'center',
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: -0.2,
+  },
+  rowInputs: {
+    flexDirection: 'row',
+  },
+  preferenceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  logoutText: {
+  preferenceInfo: {
+    flex: 1,
+  },
+  preferenceLabel: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: 'semibold',
+  },
+  preferenceSub: {
+    fontSize: 12,
+    marginTop: 2,
   },
   versionText: {
     textAlign: 'center',
-    marginTop: 24,
-    fontSize: 13,
+    marginTop: 32,
+    fontSize: 12,
+    fontWeight: '500',
+    opacity: 0.6,
   },
 });
+

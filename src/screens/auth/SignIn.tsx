@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform,Alert,ScrollView,StatusBar,Image,SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar, Image, SafeAreaView, TouchableOpacity, Switch } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks/useTheme';
@@ -15,7 +15,7 @@ export const SignIn = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn } = useAuth();
-  const { colors, spacing, typography, radius, isDark } = useTheme();
+  const { colors, spacing, typography, radius, isDark, shadows, toggleTheme } = useTheme();
 
   const handleSignIn = async () => {
     if (!login || !password) {
@@ -36,73 +36,113 @@ export const SignIn = () => {
     }
   };
 
+  const topBgColor = colors.primary;
+  const bottomBgColor = colors.background;
+  const contentTextColor = colors.text;
+  const contentSecondaryTextColor = colors.textSecondary;
+  const inputIconColor = colors.primary;
+  const logoBlurColor = isDark ? '#000000' : '#FFFFFF';
+
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: bottomBgColor }]}
     >
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      
-      <View style={[styles.topBar, { backgroundColor: colors.primary }]}>
-        <SafeAreaView />
-      </View>
 
       <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { padding: spacing.lg }]} 
+        contentContainerStyle={[styles.scrollContent]} 
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <View style={[styles.logoContainer, { backgroundColor: isDark ? colors.black : colors.white, borderRadius: radius.xl }]}>
-            <Image source={isDark ? logoPreto : logoBranco} style={styles.logo} resizeMode="contain" />
+        <View style={[styles.heroSection, { backgroundColor: topBgColor }]}>
+          <SafeAreaView />
+
+          <View style={styles.themeToggleContainer}>
+            <MaterialCommunityIcons 
+              name={isDark ? "weather-night" : "weather-sunny"} 
+              size={18} 
+              color={colors.white} 
+              style={{ marginRight: 8 }}
+            />
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: 'rgba(255,255,255,0.3)', true: colors.primaryLight }}
+              thumbColor={colors.white}
+              ios_backgroundColor="rgba(255,255,255,0.3)"
+              style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+            />
           </View>
-          <Text style={[styles.title, { color: colors.text, fontSize: typography.sizes.xhg }]}>
-            PetCare <Text style={{ color: colors.primary }}>360</Text>
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary, fontSize: typography.sizes.md }]}>
-            Cuidando de quem você ama, em todos os ângulos.
-          </Text>
+
+          <View style={styles.heroContent}>
+            <View style={[styles.logoContainer, { backgroundColor: logoBlurColor, borderRadius: radius.xxl }]}>
+              <Image source={isDark ? logoPreto : logoBranco} style={styles.logo} resizeMode="contain" />
+            </View>
+            <Text style={[styles.heroTitle, { color: colors.white }]}>PetCare 360</Text>
+            <Text style={[styles.heroSubtitle, { color: 'rgba(255,255,255,0.8)' }]}>
+              Cuidando de quem você ama.
+            </Text>
+          </View>
+          <View style={[styles.heroCurve, { backgroundColor: bottomBgColor }]} />
         </View>
 
-        <Card style={styles.formCard} variant="elevated" padding="lg">
-          <Input
-            label="Usuário"
-            placeholder="Digite seu login"
-            value={login}
-            onChangeText={setLogin}
-            autoCapitalize="none"
-            icon={<MaterialCommunityIcons name="account-outline" size={20} color={colors.textSecondary} />}
-          />
+        <View style={[styles.formSection, { paddingHorizontal: spacing.xl }]}>
+          <Text style={[styles.welcomeTitle, { color: contentTextColor }]}>Bem-vindo de volta!</Text>
+          <Text style={[styles.welcomeSubtitle, { color: contentSecondaryTextColor }]}>Faça login para continuar</Text>
 
-          <Input
-            label="Senha"
-            placeholder="Digite sua senha"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            icon={<MaterialCommunityIcons name="lock-outline" size={20} color={colors.textSecondary} />}
-          />
+          <View style={styles.form}>
+            <Input
+              label="Usuário"
+              placeholder="Digite seu login"
+              value={login}
+              onChangeText={setLogin}
+              autoCapitalize="none"
+              icon={<MaterialCommunityIcons name="account" size={20} color={inputIconColor} />}
+            />
 
-          <Button 
-            title="Entrar"
-            onPress={handleSignIn}
-            loading={isSubmitting}
-            style={styles.button}
-          />
+            <Input
+              label="Senha"
+              placeholder="Digite sua senha"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              icon={<MaterialCommunityIcons name="lock" size={20} color={inputIconColor} />}
+            />
 
-          <View style={[styles.footer, { marginTop: spacing.xl }]}>
-            <Text style={[styles.infoTitle, { color: colors.primary, fontSize: typography.sizes.xs }]}>
-              NOTAS DE ACESSO (DEMO):
+            <TouchableOpacity style={styles.forgotPassword}>
+              <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Esqueceu a senha?</Text>
+            </TouchableOpacity>
+
+            <Button 
+              title="Entrar na Conta"
+              onPress={handleSignIn}
+              loading={isSubmitting}
+              style={styles.button}
+            />
+          </View>
+
+          <View style={styles.demoSection}>
+            <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+            <Text style={[styles.demoLabel, { color: contentSecondaryTextColor, backgroundColor: bottomBgColor }]}>
+              ACESSO DEMO
             </Text>
-            <View style={[styles.badgeContainer, { marginTop: spacing.xs }]}>
-              <View style={[styles.badge, { backgroundColor: colors.primary + '15' }]}>
-                <Text style={[styles.badgeText, { color: colors.primary }]}>Vet: admin / admin</Text>
-              </View>
-              <View style={[styles.badge, { backgroundColor: colors.primary + '15' }]}>
-                <Text style={[styles.badgeText, { color: colors.primary }]}>Tutor: pet / pet</Text>
-              </View>
+
+            <View style={styles.demoBadges}>
+              <TouchableOpacity 
+                style={[styles.demoBadge, { backgroundColor: colors.surface, borderColor: colors.divider }]}
+                onPress={() => { setLogin('admin'); setPassword('admin'); }}
+              >
+                <Text style={[styles.demoBadgeText, { color: contentTextColor }]}>Veterinário</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.demoBadge, { backgroundColor: colors.surface, borderColor: colors.divider }]}
+                onPress={() => { setLogin('pet'); setPassword('pet'); }}
+              >
+                <Text style={[styles.demoBadgeText, { color: contentTextColor }]}>Tutor</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </Card>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -112,72 +152,116 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  topBar: {
-    height: Platform.OS === 'android' ? StatusBar.currentHeight : 50,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
   },
-  header: {
+  themeToggleContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 40,
+    zIndex: 10,
+  },
+  heroSection: {
+    height: 320,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 40,
+  },
+  heroContent: {
+    alignItems: 'center',
+    zIndex: 2,
   },
   logoContainer: {
-    width: 120,
-    height: 120,
+    width: 80,
+    height: 80,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    marginBottom: 16,
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 50,
+    height: 50,
   },
-  title: {
+  heroTitle: {
+    fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center',
+    letterSpacing: -1,
   },
-  subtitle: {
-    textAlign: 'center',
-    marginTop: 8,
-    opacity: 0.8,
+  heroSubtitle: {
+    fontSize: 16,
+    marginTop: 4,
   },
-  formCard: {
+  heroCurve: {
+    position: 'absolute',
+    bottom: -1,
+    left: 0,
+    right: 0,
+    height: 40,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+  },
+  formSection: {
+    flex: 1,
+    marginTop: 20,
+  },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    letterSpacing: -0.5,
+  },
+  welcomeSubtitle: {
+    fontSize: 15,
+    marginTop: 4,
+    marginBottom: 32,
+  },
+  form: {
     width: '100%',
   },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginBottom: 24,
+    marginTop: -8,
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
   button: {
-    marginTop: 10,
+    width: '100%',
   },
-  footer: {
+  demoSection: {
+    marginTop: 48,
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
-    paddingTop: 20,
+    paddingBottom: 40,
   },
-  infoTitle: {
+  divider: {
+    height: 1,
+    width: '100%',
+    position: 'absolute',
+    top: 10,
+  },
+  demoLabel: {
+    fontSize: 11,
     fontWeight: 'bold',
     letterSpacing: 1,
-    marginBottom: 8,
+    paddingHorizontal: 16,
+    zIndex: 2,
   },
-  badgeContainer: {
+  demoBadges: {
     flexDirection: 'row',
-    gap: 10,
+    marginTop: 20,
+    gap: 12,
   },
-  badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+  demoBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
   },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '700',
+  demoBadgeText: {
+    fontSize: 13,
+    fontWeight: 'bold',
   },
 });
