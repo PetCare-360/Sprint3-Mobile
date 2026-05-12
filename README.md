@@ -139,7 +139,7 @@ https://youtu.be/JAqjlLgj3s4
 Artur Correia - [GitHub](https://github.com/artcorreia)<br>
 Gabriel H - [GitHub](https://github.com/gabrielhensg)<br>
 José Ricardo - [GitHub](https://github.com/jr-iannuzzi)<br> 
-Rafael de Freitas - [GitHub](https://github.com/devfreita)<br> 
+Rafael de Freitas - [GitHub](https://github.com/devfreitas)<br> 
 Rafael Pascotte - [GitHub](https://github.com/pascotterafaaa)
 
 ## Licença
