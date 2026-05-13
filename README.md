@@ -129,11 +129,8 @@ A aplicação gerencia múltiplos fluxos de acesso garantindo segurança e segme
 - **Offline First (Básico):** Uso de cache local para garantir que dados essenciais estejam disponíveis mesmo sem conexão.
 
 ## Link Demonstração
-Link da demonstração no Youtube (Com legandas) ->
-https://youtu.be/emOJLmfVTMc
-
-Link da demonstração no Youtube (Sem legandas) ->
-https://youtu.be/JAqjlLgj3s4
+Link da demonstração no Youtube ->
+https://youtu.be/OnSErOko6Vw
 
 ## Autores
 Artur Correia - [GitHub](https://github.com/artcorreia)<br>
