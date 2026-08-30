@@ -1,44 +1,19 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl, StatusBar, Dimensions} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '../components/Card';
 import { Header } from '../components/Header';
 import { InfoCard } from '../components/InfoCard';
 import { useAuth } from '../context/AuthContext';
-import { ApiService } from '../services/api';
-import { StorageService, PetData } from '../storage';
 import { useTheme } from '../hooks/useTheme';
-import { useFocusEffect } from '@react-navigation/native';
-import { Pet } from '../types/pet';
+import { useHomeData } from '../hooks/useHomeData';
 
 const { width } = Dimensions.get('window');
 
 export const HomeScreen = () => {
   const { user } = useAuth();
   const { colors, spacing, typography, radius, shadows, isDark } = useTheme();
-  const [status, setStatus] = useState<Pet | null>(null);
-  const [localPet, setLocalPet] = useState<PetData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [apiStatus, storedPet] = await Promise.all([
-        ApiService.getPetStatus('1'),
-        StorageService.getPetData()
-      ]);
-      setStatus(apiStatus);
-      setLocalPet(storedPet);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData])
-  );
+  const { status, localPet, loading, loadData, petName, petImage } = useHomeData();
 
   if (loading && !status) {
     return (
@@ -47,11 +22,6 @@ export const HomeScreen = () => {
       </View>
     );
   }
-
-  const petName = localPet?.name || status?.name || 'Seu Pet';
-  const petImage = localPet?.image 
-    ? { uri: `data:image/png;base64,${localPet.image}` }
-    : status?.image;
 
   return (
     <View style={[styles.mainContainer, { backgroundColor: colors.background }]}>

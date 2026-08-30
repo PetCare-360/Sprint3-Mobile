@@ -1,90 +1,29 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert as RNAlert, Image, KeyboardAvoidingView, Platform} from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Image, KeyboardAvoidingView, Platform} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Header } from '../../components/Header';
 import { useTheme } from '../../hooks/useTheme';
+import { usePatients } from '../../hooks/usePatients';
 import { AlertService } from '../../services/alertService';
-import { PatientService } from '../../services/patientService';
 import { Pet, RiskLevel } from '../../types/pet';
 
 export const Patients = ({ navigation }: any) => {
   const { colors, spacing, typography, radius, isDark, shadows } = useTheme();
-  const [patients, setPatients] = useState<Pet[]>([]);
-  const [search, setSearch] = useState('');
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [collarId, setCollarId] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const loadPatients = useCallback(async () => {
-    const data = await PatientService.getPatients();
-    setPatients(data);
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadPatients();
-    }, [loadPatients])
-  );
-
-  const handleAddPatient = async () => {
-    if (!collarId.trim()) {
-      RNAlert.alert('Erro', 'Por favor, digite o ID da coleira.');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await PatientService.addPatient(collarId);
-      await loadPatients();
-      setIsModalVisible(false);
-      setCollarId('');
-      RNAlert.alert('Sucesso', 'Paciente vinculado com sucesso.');
-    } catch {
-      RNAlert.alert('Erro', 'Não foi possível vincular o paciente.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeletePatient = (id: string, name: string) => {
-    RNAlert.alert(
-      'Remover Paciente',
-      `Deseja realmente remover ${name} da sua lista de pacientes?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Remover', 
-          style: 'destructive',
-          onPress: async () => {
-            await PatientService.removePatient(id);
-            await loadPatients();
-          }
-        }
-      ]
-    );
-  };
-
-  const filteredPatients = patients
-    .filter(p => 
-      p.name.toLowerCase().includes(search.toLowerCase()) || 
-      p.breed.toLowerCase().includes(search.toLowerCase())
-    )
-    .map(p => ({
-      ...p,
-      status: AlertService.calculateRiskLevel({
-        temperature: p.temperature,
-        heartRate: p.heartRate,
-        activity: p.activity
-      })
-    }))
-    .sort((a, b) => {
-      const priority: Record<RiskLevel, number> = { critical: 0, warning: 1, stable: 2 };
-      return priority[a.status as RiskLevel] - priority[b.status as RiskLevel];
-    });
+  const {
+    search,
+    setSearch,
+    isModalVisible,
+    setIsModalVisible,
+    collarId,
+    setCollarId,
+    isLoading,
+    filteredPatients,
+    handleAddPatient,
+    handleDeletePatient,
+  } = usePatients();
 
   const renderPatient = ({ item }: { item: Pet & { status: RiskLevel } }) => {
     const statusColor = AlertService.getStatusColor(item.status);

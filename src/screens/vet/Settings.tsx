@@ -1,25 +1,14 @@
 import React from 'react';
-import { View, Text,  StyleSheet, TouchableOpacity, Switch,ScrollView,Alert} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks/useTheme';
+import { useSettingsScreen } from '../../hooks/useSettingsScreen';
 import { Card } from '../../components/Card';
 import { Header } from '../../components/Header';
 
 export const Settings = ({ navigation }: any) => {
-  const { signOut } = useAuth();
   const { colors, spacing, typography, radius, toggleTheme, isDark } = useTheme();
-
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sair',
-      'Deseja realmente sair do sistema?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Sair', style: 'destructive', onPress: async () => await signOut() }
-      ]
-    );
-  };
+  const { handleSignOut } = useSettingsScreen();
 
   const SettingItem = ({ icon, label, value, onPress, isSwitch, switchValue, onSwitchChange }: any) => (
     <TouchableOpacity 

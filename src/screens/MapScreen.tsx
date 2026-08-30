@@ -1,38 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Image, TouchableOpacity, Dimensions } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { Card } from '../components/Card';
 import { Header } from '../components/Header';
-import { ApiService, PetStatus } from '../services/api';
-import { StorageService, PetData } from '../storage';
 import { useTheme } from '../hooks/useTheme';
-import { useFocusEffect } from '@react-navigation/native';
+import { useMapData } from '../hooks/useMapData';
 
 const { width, height } = Dimensions.get('window');
 
 export const MapScreen = () => {
-  const [status, setStatus] = useState<PetStatus | null>(null);
-  const [localPet, setLocalPet] = useState<PetData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { status, localPet, loading, petImage } = useMapData();
   const { colors, spacing, radius, shadows, isDark } = useTheme();
-
-  const loadData = async () => {
-    setLoading(true);
-    const [apiStatus, storedPet] = await Promise.all([
-      ApiService.getPetStatus('1'),
-      StorageService.getPetData()
-    ]);
-    setStatus(apiStatus);
-    setLocalPet(storedPet);
-    setLoading(false);
-  };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadData();
-    }, [])
-  );
 
   if (loading) {
     return (
@@ -41,10 +20,6 @@ export const MapScreen = () => {
       </View>
     );
   }
-
-  const petImage = localPet?.image 
-    ? { uri: `data:image/png;base64,${localPet.image}` }
-    : status?.image;
 
   return (
     <View style={styles.container}>
@@ -272,5 +247,3 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
-
-

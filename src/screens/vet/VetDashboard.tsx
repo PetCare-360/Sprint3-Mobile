@@ -1,51 +1,16 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, StatusBar} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '../../components/Card';
 import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { AlertService } from '../../services/alertService';
-import { PatientService } from '../../services/patientService';
 import { useTheme } from '../../hooks/useTheme';
-import { Pet, RiskLevel } from '../../types/pet';
+import { useVetDashboard } from '../../hooks/useVetDashboard';
 
 export const VetDashboard = ({ navigation }: any) => {
   const { colors, spacing, typography, radius, shadows, isDark } = useTheme();
-  const [patients, setPatients] = useState<Pet[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadDashboardData = useCallback(async () => {
-    try {
-      const data = await PatientService.getPatients();
-      setPatients(data);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadDashboardData();
-    }, [loadDashboardData])
-  );
-
-  const processedPatients = patients
-    .map(p => ({ 
-      ...p, 
-      status: AlertService.calculateRiskLevel({ 
-        temperature: p.temperature, 
-        heartRate: p.heartRate, 
-        activity: p.activity 
-      }) 
-    }))
-    .sort((a, b) => {
-      const priority: Record<RiskLevel, number> = { critical: 0, warning: 1, stable: 2 };
-      return priority[a.status!] - priority[b.status!];
-    });
-
-  const criticalCount = processedPatients.filter(p => p.status === 'critical').length;
-  const warningCount = processedPatients.filter(p => p.status === 'warning').length;
+  const { loading, processedPatients, criticalCount, warningCount, stableCount } = useVetDashboard();
 
   const renderPatientCard = ({ item }: { item: typeof processedPatients[0] }) => {
     const statusColor = AlertService.getStatusColor(item.status!);
@@ -135,7 +100,7 @@ export const VetDashboard = ({ navigation }: any) => {
                     <View style={[styles.summaryIcon, { backgroundColor: colors.success + '10' }]}>
                       <MaterialCommunityIcons name="check-decagram" size={20} color={colors.success} />
                     </View>
-                    <Text style={[styles.summaryValue, { color: colors.text }]}>{processedPatients.length - criticalCount - warningCount}</Text>
+                    <Text style={[styles.summaryValue, { color: colors.text }]}>{stableCount}</Text>
                     <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Estáveis</Text>
                   </View>
                 </Card>

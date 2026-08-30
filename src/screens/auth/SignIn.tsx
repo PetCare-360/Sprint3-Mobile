@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar, Image, SafeAreaView, TouchableOpacity, Switch } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, StatusBar, Image, SafeAreaView, TouchableOpacity, Switch } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks/useTheme';
+import { useSignIn } from '../../hooks/useSignIn';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
@@ -11,30 +11,8 @@ const logoBranco = require('../../../public/branco.png');
 const logoPreto = require('../../../public/preto.png');
 
 export const SignIn = () => {
-  const [login, setLogin] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signIn } = useAuth();
+  const { login, password, isSubmitting, setLogin, setPassword, fillDemoCredentials, handleSignIn } = useSignIn();
   const { colors, spacing, typography, radius, isDark, shadows, toggleTheme } = useTheme();
-
-  const handleSignIn = async () => {
-    if (!login || !password) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const success = await signIn(login, password);
-      if (!success) {
-        Alert.alert('Erro', 'Usuário ou senha inválidos.');
-      }
-    } catch {
-      Alert.alert('Erro', 'Ocorreu um problema ao entrar. Tente novamente.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const topBgColor = colors.primary;
   const bottomBgColor = colors.background;
@@ -130,13 +108,13 @@ export const SignIn = () => {
             <View style={styles.demoBadges}>
               <TouchableOpacity 
                 style={[styles.demoBadge, { backgroundColor: colors.surface, borderColor: colors.divider }]}
-                onPress={() => { setLogin('admin'); setPassword('admin'); }}
+                onPress={() => fillDemoCredentials('admin', 'admin')}
               >
                 <Text style={[styles.demoBadgeText, { color: contentTextColor }]}>Veterinário</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.demoBadge, { backgroundColor: colors.surface, borderColor: colors.divider }]}
-                onPress={() => { setLogin('pet'); setPassword('pet'); }}
+                onPress={() => fillDemoCredentials('pet', 'pet')}
               >
                 <Text style={[styles.demoBadgeText, { color: contentTextColor }]}>Tutor</Text>
               </TouchableOpacity>

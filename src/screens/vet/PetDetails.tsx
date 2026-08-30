@@ -1,104 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Alert as RNAlert, Image, StatusBar } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Image, StatusBar } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '../../components/Card';
 import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { InfoCard } from '../../components/InfoCard';
 import { AlertService } from '../../services/alertService';
-import { PatientService } from '../../services/patientService';
 import { useTheme } from '../../hooks/useTheme';
-import { Pet, RiskLevel, VitalSigns } from '../../types/pet';
-import { Alert } from '../../services/alertService';
-
-interface PatientDetail extends Pet {
-  phone: string;
-  age: string;
-  weight: string;
-}
-
-const mockExtraInfo = {
-  phone: '(11) 98765-4321',
-  age: '4 anos',
-  weight: '32kg',
-};
-
-interface HistoryEvent {
-  id: string;
-  date: string;
-  type: 'consulta' | 'vacina' | 'exame' | 'cirurgia';
-  description: string;
-  vet: string;
-}
+import { usePetDetails } from '../../hooks/usePetDetails';
 
 export const PetDetails = ({ route, navigation }: any) => {
   const { petId } = route.params;
-  const [pet, setPet] = useState<PatientDetail | null>(null);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [status, setStatus] = useState<RiskLevel>('stable');
   const { colors, radius, shadows, isDark, spacing } = useTheme();
-  
-  const [history, setHistory] = useState<HistoryEvent[]>([
-    { id: '1', date: '10/04/2026', type: 'vacina', description: 'Aplicação de reforço da V10 e Raiva.', vet: 'Dra. Marina Silva' },
-    { id: '2', date: '22/03/2026', type: 'exame', description: 'Hemograma completo. Leve anemia detectada.', vet: 'Dr. Ricardo Lima' },
-    { id: '3', date: '15/01/2026', type: 'consulta', description: 'Check-up de rotina. Peso estável.', vet: 'Dra. Marina Silva' },
-  ]);
-
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [newNote, setNewNote] = useState('');
-  const [noteType, setNoteType] = useState<'consulta' | 'vacina' | 'exame' | 'cirurgia'>('consulta');
-
-  useEffect(() => {
-    async function loadPet() {
-      const patients = await PatientService.getPatients();
-      const found = patients.find(p => p.id === petId);
-      if (found) {
-        setPet({ ...found, ...mockExtraInfo });
-        const vitals: VitalSigns = { 
-          temperature: found.temperature, 
-          heartRate: found.heartRate, 
-          activity: found.activity 
-        };
-        setAlerts(AlertService.getVitalsAlerts(vitals));
-        setStatus(AlertService.calculateRiskLevel(vitals));
-      }
-    }
-    loadPet();
-  }, [petId]);
+  const {
+    pet,
+    alerts,
+    status,
+    history,
+    isModalVisible,
+    setIsModalVisible,
+    newNote,
+    setNewNote,
+    noteType,
+    setNoteType,
+    handleAddEvolution,
+    getHistoryIcon,
+  } = usePetDetails(petId);
 
   if (!pet) return null;
-
-  const handleAddEvolution = () => {
-    if (!newNote.trim()) {
-      RNAlert.alert('Erro', 'Por favor, descreva a evolução clínica.');
-      return;
-    }
-
-    const today = new Date();
-    const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
-
-    const newEvent: HistoryEvent = {
-      id: Math.random().toString(),
-      date: formattedDate,
-      type: noteType,
-      description: newNote,
-      vet: 'Dr. Veterinário (Você)',
-    };
-
-    setHistory([newEvent, ...history]);
-    setIsModalVisible(false);
-    setNewNote('');
-    RNAlert.alert('Sucesso', 'Evolução clínica registrada com sucesso.');
-  };
-
-  const getHistoryIcon = (type: string) => {
-    switch (type) {
-      case 'vacina': return 'needle';
-      case 'exame': return 'test-tube';
-      case 'cirurgia': return 'hospital-building';
-      default: return 'stethoscope';
-    }
-  };
 
   const statusColor = AlertService.getStatusColor(status);
 
