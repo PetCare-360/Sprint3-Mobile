@@ -1,4 +1,5 @@
 import { RiskLevel, VitalSigns } from '../types/pet';
+import { httpClient } from './httpClient';
 
 export interface Alert {
   id: string;
@@ -9,6 +10,10 @@ export interface Alert {
 }
 
 export const AlertService = {
+  async getQuickAlerts(): Promise<Array<{ petId: number; name: string; reason: string; currentStatus: string }>> {
+    const { data } = await httpClient.get('/pets/quick-alerts');
+    return data;
+  },
   calculateRiskLevel(vitals: VitalSigns): RiskLevel {
     if (vitals.temperature > 39) return 'critical';
     if (vitals.heartRate > 130 || vitals.activity === 'Baixa') return 'warning';
