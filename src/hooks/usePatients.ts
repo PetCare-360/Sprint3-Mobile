@@ -15,90 +15,116 @@ export function usePatients() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [collarId, setCollarId] = useState('');
   const [patientName, setPatientName] = useState('');
+  const [breed, setBreed] = useState('');
+  const [species, setSpecies] = useState('');
+  const [age, setAge] = useState('');
+  const [weight, setWeight] = useState('');
   const [editingPatient, setEditingPatient] = useState<Pet | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const removeMutation = useMutation({
-    mutationFn: PatientService.removePatient,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['patients'] }),
-  });
 
-  const handleAddPatient = async () => {
-    if (!collarId.trim()) {
-      Alert.alert('Erro', 'Por favor, digite o ID da coleira.');
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      const request = PatientService.buildRequest({
-        name: patientName || `Pet ${collarId}`,
-        age: 0,
-        weight: 1,
-        breed: 'Não informado',
-        species: 'Cão',
-        deviceId: collarId,
-      });
-      if (editingPatient) {
-        await PatientService.updatePatient(editingPatient.id, request);
-      } else {
-        await PatientService.addPatient(request);
-      }
+  const saveMutation = useMutation({
+    mutationFn: ({ id, request }: { id?: string; request: ReturnType<typeof PatientService.buildRequest> }) =>
+      id ? PatientService.updatePatient(id, request) : PatientService.addPatient(request),
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['patients'] });
       setIsModalVisible(false);
       setCollarId('');
       setPatientName('');
+      setBreed('');
+      setSpecies('');
+      setAge('');
+      setWeight('');
       setEditingPatient(null);
-      Alert.alert('Sucesso', 'Paciente vinculado com sucesso.');
-    } catch (error) {
-      Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível vincular o paciente.');
-    } finally {
-      setIsSaving(false);
+      Alert.alert('Sucesso', 'Paciente salvo com sucesso.');
+    },
+    onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível salvar o paciente.'),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: PatientService.removePatient,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['patients'] }),
+    onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível remover o paciente.'),
+  });
+
+  const handleAddPatient = () => {
+    const parsedAge = Number(age);
+    const parsedWeight = Number(weight);
+    if (
+      !patientName.trim() ||
+      !breed.trim() ||
+      !species.trim() ||
+      !collarId.trim() ||
+      !Number.isInteger(parsedAge) ||
+      parsedAge < 0 ||
+      !Number.isFinite(parsedWeight) ||
+      parsedWeight <= 0
+    ) {
+      Alert.alert('Erro', 'Preencha nome, raça, espécie, coleira, idade e peso corretamente.');
+      return;
     }
+
+    saveMutation.mutate({
+      id: editingPatient?.id,
+      request: PatientService.buildRequest({
+        name: patientName,
+        age: parsedAge,
+        weight: parsedWeight,
+        breed,
+        species,
+        deviceId: collarId,
+        temperature: editingPatient?.temperature,
+        heartRate: editingPatient?.heartRate,
+        activity: editingPatient?.activity,
+        battery: editingPatient?.battery,
+      }),
+    });
   };
 
   const handleEditPatient = (patient: Pet) => {
     setEditingPatient(patient);
     setPatientName(patient.name);
+    setBreed(patient.breed);
+    setSpecies(patient.species || '');
+    setAge(String(patient.age ?? ''));
+    setWeight(String(patient.weight ?? ''));
     setCollarId(patient.collarId || '');
     setIsModalVisible(true);
   };
 
-  const handleDeletePatient = (id: string, name: string) => {
-    Alert.alert(
-      'Remover Paciente',
-      `Deseja realmente remover ${name} da sua lista de pacientes?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            removeMutation.mutate(id);
-          },
-        },
-      ]
-    );
+  const handleNewPatient = () => {
+    setEditingPatient(null);
+    setPatientName('');
+    setBreed('');
+    setSpecies('');
+    setAge('');
+    setWeight('');
+    setCollarId('');
+    setIsModalVisible(true);
   };
 
-  const filteredPatients = useMemo(() => {
-    return patients
-      .filter(p =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.breed.toLowerCase().includes(search.toLowerCase())
-      )
-      .map(p => ({
-        ...p,
-        status: AlertService.calculateRiskLevel({
-          temperature: p.temperature,
-          heartRate: p.heartRate,
-          activity: p.activity,
-        }),
-      }))
-      .sort((a, b) => {
-        const priority: Record<RiskLevel, number> = { critical: 0, warning: 1, stable: 2 };
-        return priority[a.status as RiskLevel] - priority[b.status as RiskLevel];
-      });
-  }, [patients, search]);
+  const handleDeletePatient = (id: string, name: string) => {
+    Alert.alert('Remover Paciente', `Deseja realmente remover ${name} da sua lista de pacientes?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Remover', style: 'destructive', onPress: () => removeMutation.mutate(id) },
+    ]);
+  };
+
+  const filteredPatients = useMemo(() => patients
+    .filter(patient =>
+      patient.name.toLowerCase().includes(search.toLowerCase()) ||
+      patient.breed.toLowerCase().includes(search.toLowerCase()),
+    )
+    .map(patient => ({
+      ...patient,
+      status: patient.status || AlertService.calculateRiskLevel({
+        temperature: patient.temperature,
+        heartRate: patient.heartRate,
+        activity: patient.activity,
+      }),
+    }))
+    .sort((a, b) => {
+      const priority: Record<RiskLevel, number> = { critical: 0, warning: 1, stable: 2 };
+      return priority[a.status as RiskLevel] - priority[b.status as RiskLevel];
+    }), [patients, search]);
 
   return {
     search,
@@ -109,11 +135,20 @@ export function usePatients() {
     setCollarId,
     patientName,
     setPatientName,
+    breed,
+    setBreed,
+    species,
+    setSpecies,
+    age,
+    setAge,
+    weight,
+    setWeight,
     editingPatient,
-    isLoading: isLoading || isSaving || removeMutation.isPending,
+    isLoading: isLoading || saveMutation.isPending || removeMutation.isPending,
     filteredPatients,
     handleAddPatient,
     handleEditPatient,
+    handleNewPatient,
     handleDeletePatient,
   };
 }

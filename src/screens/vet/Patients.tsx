@@ -21,11 +21,20 @@ export const Patients = ({ navigation }: any) => {
     setCollarId,
     patientName,
     setPatientName,
+    breed,
+    setBreed,
+    species,
+    setSpecies,
+    age,
+    setAge,
+    weight,
+    setWeight,
     editingPatient,
     isLoading,
     filteredPatients,
     handleAddPatient,
     handleEditPatient,
+    handleNewPatient,
     handleDeletePatient,
   } = usePatients();
 
@@ -76,7 +85,7 @@ export const Patients = ({ navigation }: any) => {
         onBack={() => navigation.goBack()}
         rightElement={
           <TouchableOpacity 
-            onPress={() => setIsModalVisible(true)} 
+            onPress={handleNewPatient} 
             style={styles.addButton}
           >
             <MaterialCommunityIcons name="plus-circle-outline" size={26} color={colors.text} />
@@ -152,6 +161,12 @@ export const Patients = ({ navigation }: any) => {
               autoCapitalize="characters"
               icon={<MaterialCommunityIcons name="qrcode-scan" size={20} color={colors.primary} />}
             />
+            <Input label="RAÇA" placeholder="Ex: Golden Retriever" value={breed} onChangeText={setBreed} />
+            <Input label="ESPÉCIE" placeholder="Ex: Cão" value={species} onChangeText={setSpecies} />
+            <View style={styles.formRow}>
+              <Input label="IDADE" placeholder="Anos" value={age} onChangeText={setAge} keyboardType="numeric" containerStyle={styles.formField} />
+              <Input label="PESO (KG)" placeholder="Peso" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" containerStyle={styles.formField} />
+            </View>
 
             <Button 
               title={editingPatient ? 'Salvar alterações' : 'Vincular Dispositivo'} 
@@ -314,5 +329,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 24,
+  },
+  formRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  formField: {
+    flex: 1,
   },
 });
