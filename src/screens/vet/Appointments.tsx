@@ -14,8 +14,14 @@ export const Appointments = ({ navigation }: any) => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Header title="Consultas" showBack onBack={() => navigation.goBack()} />
+      {appointments.isError && (
+        <View style={styles.errorContainer}>
+          <Text style={{ color: colors.danger }}>Não foi possível carregar as consultas.</Text>
+          <Button title="Tentar novamente" onPress={() => appointments.refetch()} variant="outline" />
+        </View>
+      )}
       <FlatList
-        data={appointments.appointments}
+        data={appointments.isError ? [] : appointments.appointments}
         keyExtractor={item => String(item.id)}
         contentContainerStyle={{ padding: spacing.lg }}
         ListHeaderComponent={
@@ -36,7 +42,7 @@ export const Appointments = ({ navigation }: any) => {
             {item.status !== 'FINISHED' && (
               <Button title="Finalizar" onPress={() => appointments.finish(item.id)} loading={appointments.isLoading} />
             )}
-            <Button title="Excluir" onPress={() => appointments.remove(item.id)} loading={appointments.isLoading} variant="outline" />
+            <Button title="Excluir" onPress={() => appointments.remove(item.id, item.petName)} loading={appointments.isLoading} variant="outline" />
           </Card>
         )}
         ListEmptyComponent={appointments.isLoading ? <ActivityIndicator color={colors.primary} /> : <Text style={{ color: colors.textSecondary }}>Nenhuma consulta encontrada.</Text>}
@@ -50,4 +56,5 @@ const styles = StyleSheet.create({
   form: { marginBottom: 20 },
   item: { marginBottom: 12 },
   title: { fontSize: 17, fontWeight: '700', marginBottom: 8 },
+  errorContainer: { padding: 16, gap: 8 },
 });

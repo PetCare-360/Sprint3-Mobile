@@ -9,7 +9,7 @@ export function useAppointments() {
   const [veterinarianId, setVeterinarianId] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [reason, setReason] = useState('');
-  const { data: appointments = [], isLoading } = useQuery({
+  const { data: appointments = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['appointments'],
     queryFn: appointmentService.list,
   });
@@ -28,23 +28,26 @@ export function useAppointments() {
   const finishMutation = useMutation({
     mutationFn: appointmentService.finish,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['appointments'] }),
+    onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível finalizar a consulta.'),
   });
   const removeMutation = useMutation({
     mutationFn: appointmentService.remove,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['appointments'] }),
+    onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível excluir a consulta.'),
   });
 
   const create = () => {
     const parsedPetId = Number(petId);
     const parsedVeterinarianId = Number(veterinarianId);
-    if (!parsedPetId || !parsedVeterinarianId || !scheduledAt || !reason.trim()) {
+    const parsedDate = new Date(scheduledAt);
+    if (!parsedPetId || !parsedVeterinarianId || !scheduledAt || Number.isNaN(parsedDate.getTime()) || !reason.trim()) {
       Alert.alert('Erro', 'Preencha pet, veterinário, data e motivo.');
       return;
     }
     mutation.mutate({
       petId: parsedPetId,
       veterinarianId: parsedVeterinarianId,
-      scheduledAt: new Date(scheduledAt).toISOString(),
+      scheduledAt: parsedDate.toISOString(),
       reason: reason.trim(),
     });
   };
@@ -61,7 +64,14 @@ export function useAppointments() {
     setReason,
     create,
     finish: (id: number) => finishMutation.mutate(id),
-    remove: (id: number) => removeMutation.mutate(id),
+    remove: (id: number, description: string) => {
+      Alert.alert('Excluir consulta', `Deseja excluir a consulta de ${description}?`, [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Excluir', style: 'destructive', onPress: () => removeMutation.mutate(id) },
+      ]);
+    },
+    isError,
+    refetch,
     isLoading: isLoading || mutation.isPending || finishMutation.isPending || removeMutation.isPending,
   };
 }
