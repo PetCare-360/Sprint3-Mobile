@@ -101,7 +101,6 @@ export function useProfileForm() {
     setBreed,
     setAge,
     setWeight,
-    setOwnerName: () => undefined,
     pickImage,
     handleSave,
     handleLogout: () => Alert.alert('Sair', 'Deseja realmente sair da sua conta?', [

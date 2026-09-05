@@ -22,7 +22,6 @@ export const ProfileScreen = () => {
     setBreed,
     setAge,
     setWeight,
-    setOwnerName,
     pickImage,
     handleSave,
     handleLogout,
@@ -78,12 +77,15 @@ export const ProfileScreen = () => {
           <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: spacing.md }]}>
             Informações do Tutor
           </Text>
-          <Input
-            label="Nome do Tutor"
-            value={ownerName}
-            onChangeText={setOwnerName}
-            icon={<Icon name="account-outline" size={20} color={colors.primary} />}
-          />
+          <Card padding="md" variant="flat">
+            <View style={styles.readOnlyRow}>
+              <Icon name="account-outline" size={20} color={colors.primary} />
+              <Text style={[styles.readOnlyValue, { color: colors.text }]}>{ownerName}</Text>
+            </View>
+            <Text style={[styles.readOnlyHint, { color: colors.textSecondary }]}>
+              O nome do tutor é gerenciado pela conta autenticada.
+            </Text>
+          </Card>
         </View>
 
         <View style={styles.sectionContainer}>
@@ -234,6 +236,19 @@ const styles = StyleSheet.create({
   rowInputs: {
     flexDirection: 'row',
   },
+  readOnlyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  readOnlyValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 10,
+  },
+  readOnlyHint: {
+    fontSize: 12,
+    marginTop: 8,
+  },
   preferenceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -258,4 +273,3 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 });
-

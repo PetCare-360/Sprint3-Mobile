@@ -18,11 +18,5 @@ export const httpClient = axios.create({
 
 httpClient.interceptors.response.use(
   response => response,
-  error => {
-    const status = error?.response?.status;
-    if (status === 401 || status === 403) {
-      return Promise.reject(new Error('Sessão expirada. Entre novamente para continuar.'));
-    }
-    return Promise.reject(error);
-  },
+  error => Promise.reject(error),
 );

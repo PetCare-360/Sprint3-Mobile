@@ -1,6 +1,7 @@
 import { httpClient } from './httpClient';
 import { AuthResponse, RegisterRequest, UserResponse } from '../types/auth';
 import { ApiException } from '../types/apiException';
+import axios from 'axios';
 
 function extractErrorMessage(error: unknown, fallback: string): string {
   if (
@@ -57,15 +58,10 @@ export const authService = {
       await httpClient.get('/pets/all');
       return true;
     } catch (error) {
-      if (
-        error &&
-        typeof error === 'object' &&
-        'response' in error &&
-        ((error as any).response?.status === 401 || (error as any).response?.status === 403)
-      ) {
+      if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
         return false;
       }
-      return true;
+      throw error;
     }
   },
 };
