@@ -3,6 +3,18 @@ import { User, userStorage } from '../storage/userStorage';
 import { authService } from '../services/authService';
 import { RegisterRequest } from '../types/auth';
 import { ApiException } from '../types/apiException';
+import { ApiRole } from '../types/auth';
+
+function isStoredUser(value: unknown): value is User {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<User>;
+  return (
+    typeof candidate.id === 'number' &&
+    typeof candidate.name === 'string' &&
+    typeof candidate.email === 'string' &&
+    ['ROLE_ADMIN', 'ROLE_CLIENTE', 'ROLE_VETERINARIO'].includes(candidate.role as ApiRole)
+  );
+}
 
 interface AuthContextData {
   user: User | null;
@@ -20,16 +32,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     async function loadStorageData() {
-      const storageUser = await userStorage.getUser();
-      if (storageUser) {
+      try {
+        const storageUser = await userStorage.getUser();
+        if (!isStoredUser(storageUser)) {
+          if (storageUser) await userStorage.removeUser();
+          return;
+        }
+
         const stillValid = await authService.validateSession();
         if (stillValid) {
           setUser(storageUser);
         } else {
           await userStorage.removeUser();
         }
+      } catch (error) {
+        console.warn('[AuthContext] Não foi possível validar a sessão salva.', error);
+        await userStorage.removeUser();
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     loadStorageData();
   }, []);
