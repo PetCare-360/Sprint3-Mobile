@@ -59,7 +59,7 @@ export const MapScreen = () => {
       <View style={styles.statusOverlay}>
         <Card style={styles.statusCard} variant="glass" padding="lg">
           <View style={styles.statusHeader}>
-            <Text style={[styles.petName, { color: colors.text }]}>{localPet?.name || 'Max'}</Text>
+            <Text style={[styles.petName, { color: colors.text }]}>{localPet?.name || 'Sem pet cadastrado'}</Text>
             <View style={styles.lastSeenBadge}>
               <View style={[styles.statusDot, { backgroundColor: colors.success }]} />
               <Text style={[styles.lastSeenText, { color: colors.textSecondary }]}>

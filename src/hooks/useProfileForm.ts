@@ -2,47 +2,45 @@ import { useEffect, useState } from 'react';
 import { Alert, Platform, ToastAndroid } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { salvar } from '../services/imageApi';
-import { StorageService, PetData } from '../storage';
+import { PatientService } from '../services/patientService';
 import { useAuth } from '../context/AuthContext';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useProfileForm() {
   const { user, signOut } = useAuth();
-
-  const [petName, setPetName] = useState('Max');
-  const [breed, setBreed] = useState('Golden Retriever');
-  const [age, setAge] = useState('3');
-  const [weight, setWeight] = useState('28.5');
-  const [ownerName, setOwnerName] = useState('Carlos Silva');
-  const [imagem, setImagem] = useState<string | null | undefined>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: pets = [], isLoading } = useQuery({
+    queryKey: ['pets'],
+    queryFn: PatientService.getPets,
+  });
+  const pet = pets[0];
+  const [petName, setPetName] = useState('');
+  const [breed, setBreed] = useState('');
+  const [age, setAge] = useState('');
+  const [weight, setWeight] = useState('');
+  const [ownerName] = useState(user?.name || '');
+  const [imagem, setImagem] = useState<string | null>(null);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, request }: { id: string; request: ReturnType<typeof PatientService.buildRequest> }) =>
+      PatientService.updatePatient(id, request),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pets'] }),
+  });
 
   useEffect(() => {
-    loadPetData();
-  }, []);
-
-  const loadPetData = async () => {
-    const data = await StorageService.getPetData();
-    if (data) {
-      setPetName(data.name);
-      setBreed(data.breed);
-      setAge(data.age);
-      setWeight(data.weight);
-      setOwnerName(data.ownerName || user?.name || 'Carlos Silva');
-      setImagem(data.image);
-    } else {
-      setOwnerName(user?.name || 'Carlos Silva');
+    if (pet) {
+      setPetName(pet.name);
+      setBreed(pet.breed);
+      setAge(String(pet.age ?? ''));
+      setWeight(String(pet.weight ?? ''));
     }
-    setIsLoading(false);
-  };
+  }, [pet]);
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (!permissionResult.granted) {
       Alert.alert('Permissão Necessária', 'É necessário permissão para acessar a galeria');
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: false,
@@ -50,48 +48,45 @@ export function useProfileForm() {
       quality: 0.2,
       base64: true,
     });
-
-    if (!result.assets || result.assets.length === 0) return;
-
-    const selectedImage = result.assets[0];
-    if (selectedImage.base64 == null) return;
-
+    const selectedImage = result.assets?.[0];
+    if (!selectedImage?.base64) return;
     try {
       await salvar(selectedImage.base64);
       setImagem(selectedImage.base64);
-      await StorageService.savePetData({
-        name: petName,
-        breed,
-        age,
-        weight,
-        ownerName,
-        image: selectedImage.base64,
-      });
-      if (Platform.OS === 'android') {
-        ToastAndroid.show('Imagem salva com sucesso!', ToastAndroid.SHORT);
-      } else {
-        Alert.alert('Sucesso', 'Imagem salva com sucesso!');
-      }
+      if (Platform.OS === 'android') ToastAndroid.show('Imagem salva com sucesso!', ToastAndroid.SHORT);
+      else Alert.alert('Sucesso', 'Imagem salva com sucesso!');
     } catch {
       Alert.alert('Erro', 'Não foi possível salvar a imagem remotamente.');
     }
   };
 
-  const handleSave = async () => {
-    const data: PetData = { name: petName, breed, age, weight, ownerName, image: imagem };
-    await StorageService.savePetData(data);
-    Alert.alert('Sucesso', 'Informações salvas!');
-  };
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Sair',
-      'Deseja realmente sair da sua conta?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Sair', style: 'destructive', onPress: () => signOut() },
-      ]
-    );
+  const handleSave = () => {
+    if (!pet) {
+      Alert.alert('Erro', 'Nenhum pet cadastrado para atualizar.');
+      return;
+    }
+    const parsedAge = Number(age);
+    const parsedWeight = Number(weight);
+    if (!petName.trim() || !breed.trim() || !Number.isFinite(parsedAge) || !Number.isFinite(parsedWeight)) {
+      Alert.alert('Erro', 'Preencha nome, raça, idade e peso corretamente.');
+      return;
+    }
+    updateMutation.mutate({
+      id: pet.id,
+      request: PatientService.buildRequest({
+        name: petName,
+        age: parsedAge,
+        weight: parsedWeight,
+        breed,
+        species: pet.species || 'Cão',
+        deviceId: pet.collarId || '',
+        temperature: pet.temperature || 38.5,
+        heartRate: pet.heartRate || 80,
+        activity: pet.activity,
+        battery: pet.battery || 100,
+      }),
+    });
+    Alert.alert('Sucesso', 'Informações atualizadas na API.');
   };
 
   return {
@@ -101,14 +96,17 @@ export function useProfileForm() {
     weight,
     ownerName,
     imagem,
-    isLoading,
+    isLoading: isLoading || updateMutation.isPending,
     setPetName,
     setBreed,
     setAge,
     setWeight,
-    setOwnerName,
+    setOwnerName: () => undefined,
     pickImage,
     handleSave,
-    handleLogout,
+    handleLogout: () => Alert.alert('Sair', 'Deseja realmente sair da sua conta?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Sair', style: 'destructive', onPress: signOut },
+    ]),
   };
 }
