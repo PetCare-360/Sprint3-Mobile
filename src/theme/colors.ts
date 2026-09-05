@@ -36,6 +36,7 @@ export const palette = {
 };
 
 export const light = {
+  ...palette,
   background: '#F8FAFC',
   surface: '#FFFFFF',
   card: '#FFFFFF',
@@ -54,6 +55,7 @@ export const light = {
 };
 
 export const dark = {
+  ...palette,
   background: '#0F172A',   
   surface: '#1E293B',       
   card: '#1E293B',

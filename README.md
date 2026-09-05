@@ -32,7 +32,7 @@ O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade
 - **Core:** React Native com Expo.
 - **Linguagem:** TypeScript.
 - **Navegação:** React Navigation (Stack e Bottom Tabs).
-- **Estado e Consumo:** Axios para integração com APIs REST e Context API para gerenciamento de estado global.
+- **Estado e Consumo:** Axios para HTTP e TanStack Query para cache, loading, mutations e invalidação de dados.
 - **Persistência:** AsyncStorage para armazenamento local de preferências e dados de sessão.
 - **Geolocalização:** React Native Maps.
 
@@ -45,8 +45,9 @@ O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade
 - Aplicativo **Expo Go** instalado no dispositivo móvel ou emulador configurado.
 
 ### Configuração (Variáveis de Ambiente)
-O projeto utiliza o Firebase para armazenamento de imagens. Crie um arquivo `.env` na raiz do projeto e configure as seguintes variáveis:
+O aplicativo consome a API Spring Boot da Sprint 3. Crie um arquivo `.env` na raiz do projeto e configure:
 ```env
+EXPO_PUBLIC_API_BASE_URL=http://localhost:8080
 EXPO_PUBLIC_FIREBASE_BASE_URL=https://seu-projeto.firebaseio.com
 EXPO_PUBLIC_FIREBASE_API_TOKEN=seu-api-token
 ```
@@ -68,10 +69,13 @@ Inicie o servidor do Expo utilizando um dos comandos abaixo:
 - `npm run android`: Inicia no emulador Android.
 - `npm run web`: Inicia a versão web.
 
-### Credenciais de Teste
-Para explorar os diferentes fluxos da aplicação, utilize os seguintes acessos:
-- **Veterinário:** Login: `admin` | Senha: `admin`
-- **Tutor:** Login: `pet` | Senha: `pet`
+### Autenticação
+Crie um usuário pela tela de cadastro e entre com as credenciais cadastradas na API. O perfil retornado pelo backend define o fluxo de tutor ou veterinário, e a sessão é restaurada ao reabrir o aplicativo.
+
+### Funcionalidades integradas
+- Pets: listagem, cadastro de coleira, edição e remoção via `/pets`.
+- Consultas: solicitação, listagem, finalização e remoção via `/appointments`.
+- Dashboard e monitoramento: dados de saúde consultados em `/pets/{id}/health-status`.
 
 
 ## Principais Dependências
@@ -80,7 +84,8 @@ O projeto depende das seguintes bibliotecas principais:
 
 - **expo (~54.0.33):** Plataforma para desenvolvimento React Native.
 - **@react-navigation/native & stack/bottom-tabs:** Sistema de navegação completo.
-- **axios:** Cliente para chamadas de API (utilizado em `imageApi.ts`).
+- **axios:** Cliente para chamadas HTTP da API Java.
+- **@tanstack/react-query:** Gerenciamento das consultas e mutações da API.
 - **react-native-maps:** Componente de mapa para localização de serviços.
 - **expo-image-picker:** Permite a seleção de imagens para o perfil.
 - **@react-native-async-storage/async-storage:** Armazenamento persistente de dados.
