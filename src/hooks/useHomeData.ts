@@ -2,12 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { PatientService } from '../services/patientService';
 
 export function useHomeData() {
-  const { data: pets = [], isLoading: petsLoading, refetch } = useQuery({
+  const { data: pets = [], isLoading: petsLoading, isError: petsError, refetch } = useQuery({
     queryKey: ['pets'],
     queryFn: PatientService.getPets,
   });
   const firstPet = pets[0];
-  const { data: status, isLoading: healthLoading } = useQuery({
+  const { data: status, isLoading: healthLoading, isError: healthError } = useQuery({
     queryKey: ['pet-health', firstPet?.id],
     queryFn: () => PatientService.getHealthStatus(firstPet!.id),
     enabled: Boolean(firstPet),
@@ -29,6 +29,7 @@ export function useHomeData() {
     localPet: firstPet ?? null,
     activitySummary,
     loading: petsLoading || healthLoading,
+    isError: petsError || healthError,
     loadData: refetch,
     petName: firstPet?.name || 'Seu Pet',
     petImage: firstPet?.image,

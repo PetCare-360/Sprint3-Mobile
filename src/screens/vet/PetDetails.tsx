@@ -17,10 +17,20 @@ export const PetDetails = ({ route, navigation }: any) => {
     status,
     history,
     isLoading,
+    isError,
+    retry,
     getHistoryIcon,
   } = usePetDetails(petId);
 
   if (isLoading || !pet) {
+    if (isError) {
+      return (
+        <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: spacing.lg }]}>
+          <Text style={{ color: colors.text }}>Não foi possível carregar a ficha do paciente.</Text>
+          <Text onPress={() => retry()} style={{ color: colors.primary, fontWeight: '700', marginTop: 16 }}>Tentar novamente</Text>
+        </View>
+      );
+    }
     return <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />;
   }
 

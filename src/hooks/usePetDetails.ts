@@ -11,19 +11,19 @@ export interface HistoryEvent {
 }
 
 export function usePetDetails(petId: string) {
-  const { data: pet, isLoading: isPetLoading } = useQuery({
+  const { data: pet, isLoading: isPetLoading, isError: petError, refetch: refetchPet } = useQuery({
     queryKey: ['pet', petId],
     queryFn: () => PatientService.getPet(petId),
   });
-  const { data: health, isLoading: isHealthLoading } = useQuery({
+  const { data: health, isLoading: isHealthLoading, isError: healthError } = useQuery({
     queryKey: ['pet-health', petId],
     queryFn: () => PatientService.getHealthStatus(petId),
   });
-  const { data: monitoring, isLoading: isMonitoringLoading } = useQuery({
+  const { data: monitoring, isLoading: isMonitoringLoading, isError: monitoringError } = useQuery({
     queryKey: ['pet-monitoring', petId],
     queryFn: () => PatientService.getMonitoring(petId),
   });
-  const { data: apiAlerts, isLoading: isAlertsLoading } = useQuery({
+  const { data: apiAlerts, isLoading: isAlertsLoading, isError: alertsError } = useQuery({
     queryKey: ['pet-alerts', petId],
     queryFn: () => PatientService.getAlerts(petId),
   });
@@ -51,6 +51,8 @@ export function usePetDetails(petId: string) {
     status,
     history,
     isLoading: isPetLoading || isHealthLoading || isMonitoringLoading || isAlertsLoading,
+    isError: petError || healthError || monitoringError || alertsError,
+    retry: refetchPet,
     getHistoryIcon: (_type: string) => 'chart-line',
   };
 }

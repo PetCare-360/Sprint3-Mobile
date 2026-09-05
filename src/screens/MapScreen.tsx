@@ -10,13 +10,24 @@ import { useMapData } from '../hooks/useMapData';
 const { width, height } = Dimensions.get('window');
 
 export const MapScreen = () => {
-  const { status, location, localPet, loading, petImage } = useMapData();
+  const { status, location, localPet, loading, isError, retry, petImage } = useMapData();
   const { colors, spacing, radius, shadows, isDark } = useTheme();
 
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.text }}>Não foi possível carregar a localização.</Text>
+        <TouchableOpacity onPress={() => retry()} style={{ marginTop: 16 }}>
+          <Text style={{ color: colors.primary, fontWeight: '700' }}>Tentar novamente</Text>
+        </TouchableOpacity>
       </View>
     );
   }

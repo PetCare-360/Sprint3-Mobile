@@ -13,12 +13,23 @@ const { width } = Dimensions.get('window');
 export const HomeScreen = () => {
   const { user } = useAuth();
   const { colors, spacing, typography, radius, shadows, isDark } = useTheme();
-  const { status, location, localPet, activitySummary, loading, loadData, petName, petImage } = useHomeData();
+  const { status, location, localPet, activitySummary, loading, isError, loadData, petName, petImage } = useHomeData();
 
   if (loading && !status) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (isError && !status) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.text }}>Não foi possível carregar os dados do pet.</Text>
+        <TouchableOpacity onPress={() => loadData()} style={{ marginTop: 16 }}>
+          <Text style={{ color: colors.primary, fontWeight: '700' }}>Tentar novamente</Text>
+        </TouchableOpacity>
       </View>
     );
   }
