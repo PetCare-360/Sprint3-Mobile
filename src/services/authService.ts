@@ -8,22 +8,47 @@ function extractErrorMessage(error: unknown, fallback: string): string {
     error &&
     typeof error === 'object' &&
     'response' in error &&
-    (error as any).response?.data?.message
+    typeof error.response === 'object' &&
+    error.response !== null &&
+    'data' in error.response &&
+    typeof error.response.data === 'object' &&
+    error.response.data !== null &&
+    'message' in error.response.data &&
+    typeof error.response.data.message === 'string'
   ) {
-    return (error as any).response.data.message as string;
+    return error.response.data.message;
   }
   return fallback;
+}
+
+function isAuthResponse(value: unknown): value is AuthResponse {
+  if (!value || typeof value !== 'object' || !('user' in value)) return false;
+  const user = value.user;
+  return Boolean(
+    user &&
+    typeof user === 'object' &&
+    'id' in user &&
+    'name' in user &&
+    'email' in user &&
+    'role' in user,
+  );
 }
 
 export const authService = {
   async signIn(email: string, password: string): Promise<UserResponse> {
     try {
-      const { data } = await httpClient.post<AuthResponse>('/auth/login', {
+      const { data } = await httpClient.post<unknown>('/auth/login', {
         email,
         password,
       });
+      if (!isAuthResponse(data)) {
+        throw new ApiException(
+          'A API retornou uma resposta inválida. O deploy pode estar redirecionando o login para a página web.',
+        );
+      }
       return data.user;
     } catch (error) {
+      if (error instanceof ApiException) throw error;
       throw new ApiException(extractErrorMessage(error, 'Não foi possível entrar. Verifique suas credenciais.'));
     }
   },
@@ -51,7 +76,6 @@ export const authService = {
    * salvo ainda é válido quando o app reabre, batemos numa rota protegida
    * leve e tratamos 401/403 como sessão expirada.
    * - Trocar por GET /auth/me assim que existir.
-   * Arruma logo isso Rafuxo....
    */
   async validateSession(): Promise<boolean> {
     try {
