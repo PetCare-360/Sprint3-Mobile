@@ -11,10 +11,10 @@ O **PetCare 360** é uma solução mobile robusta projetada para o monitoramento
 
 ### Módulo do Tutor
 - **Dashboard de Saúde:** Visualização em tempo real de temperatura, nível de atividade e batimentos cardíacos.
-    - *Visualização em tempo real de temperatura* - Por hora não implementado, parâmetro fictícios no projeto
+    - *Visualização em tempo real de temperatura* - Dados da última leitura retornada pela API
 - **Alertas Inteligentes:** Notificações instantâneas sobre anomalias nos dados vitais do pet.
 - **Perfil do Pet:** Centralização de informações cadastrais e histórico básico.
-- **Localização:** Integração com mapas para visualização de serviços próximos.
+- **Localização:** Integração com mapas para visualização da última localização do pet.
 
 ### Módulo do Veterinário
 - **Triagem Digital:** Dashboard com sistema de priorização de pacientes baseado em risco clínico.
@@ -53,8 +53,8 @@ EXPO_PUBLIC_API_BASE_URL=http://localhost:8080
 ### Instalação
 1. Clone o repositório:
    ```bash
-    git clone https://github.com/PetCare-360/Sprint1-Mobile
-    cd Sprint1-Mobile
+    git clone https://github.com/PetCare-360/Sprint3-Mobile
+    cd Sprint3-Mobile
     ```
 2. Instale as dependências:
    ```bash

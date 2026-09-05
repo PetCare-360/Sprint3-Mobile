@@ -52,10 +52,10 @@ export function useProfileForm() {
         breed,
         species: pet.species || 'Cão',
         deviceId: pet.collarId || '',
-        temperature: pet.temperature || 38.5,
-        heartRate: pet.heartRate || 80,
+        temperature: pet.temperature ?? 38.5,
+        heartRate: pet.heartRate ?? 80,
         activity: pet.activity,
-        battery: pet.battery || 100,
+        battery: pet.battery ?? 100,
       }),
     });
     Alert.alert('Sucesso', 'Informações atualizadas na API.');
