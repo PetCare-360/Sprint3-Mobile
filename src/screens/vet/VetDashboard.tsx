@@ -12,7 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 export const VetDashboard = ({ navigation }: any) => {
   const { colors, spacing, typography, radius, shadows, isDark } = useTheme();
   const { user } = useAuth();
-  const { loading, processedPatients, criticalCount, warningCount, stableCount } = useVetDashboard();
+  const { loading, isError, refetch, processedPatients, criticalCount, warningCount, stableCount } = useVetDashboard();
 
   const renderPatientCard = ({ item }: { item: typeof processedPatients[0] }) => {
     const statusColor = AlertService.getStatusColor(item.status!);
@@ -50,6 +50,15 @@ export const VetDashboard = ({ navigation }: any) => {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={[styles.emptyText, { color: colors.text }]}>Não foi possível carregar os pacientes.</Text>
+        <Button title="Tentar novamente" onPress={() => refetch()} style={{ marginTop: 16 }} />
       </View>
     );
   }

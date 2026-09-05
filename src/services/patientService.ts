@@ -36,6 +36,16 @@ export const PatientService = {
     return data.map(toPet);
   },
 
+  async getPatientsWithHealth(): Promise<Pet[]> {
+    const patients = await PatientService.getPatients();
+    return Promise.all(
+      patients.map(async patient => {
+        const health = await PatientService.getHealthStatus(patient.id);
+        return { ...patient, ...health };
+      }),
+    );
+  },
+
   async getPets(): Promise<Pet[]> {
     const { data } = await httpClient.get<PetApiResponse[]>('/pets/all');
     return data.map(toPet);
