@@ -13,11 +13,13 @@ export const SignUp = ({ navigation }: any) => {
     email,
     password,
     confirmPassword,
+    role,
     isSubmitting,
     setName,
     setEmail,
     setPassword,
     setConfirmPassword,
+    setRole,
     handleSignUp,
   } = useSignUp(() => navigation.navigate('SignIn'));
 
@@ -79,6 +81,32 @@ export const SignUp = ({ navigation }: any) => {
               icon={<MaterialCommunityIcons name="lock-check" size={20} color={inputIconColor} />}
             />
 
+            <Text style={[styles.roleLabel, { color: colors.textSecondary }]}>TIPO DE CONTA</Text>
+            <View style={styles.roleOptions}>
+              <TouchableOpacity
+                style={[
+                  styles.roleOption,
+                  { borderColor: role === 'ROLE_CLIENTE' ? colors.primary : colors.border },
+                  role === 'ROLE_CLIENTE' && { backgroundColor: colors.primary + '12' },
+                ]}
+                onPress={() => setRole('ROLE_CLIENTE')}
+              >
+                <MaterialCommunityIcons name="account-heart-outline" size={22} color={role === 'ROLE_CLIENTE' ? colors.primary : colors.textSecondary} />
+                <Text style={{ color: role === 'ROLE_CLIENTE' ? colors.primary : colors.text }}>Tutor</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.roleOption,
+                  { borderColor: role === 'ROLE_VETERINARIO' ? colors.primary : colors.border },
+                  role === 'ROLE_VETERINARIO' && { backgroundColor: colors.primary + '12' },
+                ]}
+                onPress={() => setRole('ROLE_VETERINARIO')}
+              >
+                <MaterialCommunityIcons name="stethoscope" size={22} color={role === 'ROLE_VETERINARIO' ? colors.primary : colors.textSecondary} />
+                <Text style={{ color: role === 'ROLE_VETERINARIO' ? colors.primary : colors.text }}>Veterinário</Text>
+              </TouchableOpacity>
+            </View>
+
             <Button
               title="Cadastrar"
               onPress={handleSignUp}
@@ -128,6 +156,26 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '100%',
+  },
+  roleLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  roleOptions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  roleOption: {
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    flex: 1,
+    gap: 6,
+    paddingVertical: 14,
   },
   button: {
     width: '100%',
