@@ -7,9 +7,11 @@ import { Button } from '../../components/Button';
 import { AlertService } from '../../services/alertService';
 import { useTheme } from '../../hooks/useTheme';
 import { useVetDashboard } from '../../hooks/useVetDashboard';
+import { useAuth } from '../../context/AuthContext';
 
 export const VetDashboard = ({ navigation }: any) => {
   const { colors, spacing, typography, radius, shadows, isDark } = useTheme();
+  const { user } = useAuth();
   const { loading, processedPatients, criticalCount, warningCount, stableCount } = useVetDashboard();
 
   const renderPatientCard = ({ item }: { item: typeof processedPatients[0] }) => {
@@ -73,7 +75,7 @@ export const VetDashboard = ({ navigation }: any) => {
         ListHeaderComponent={
           <>
             <View style={[styles.summaryContainer, { paddingHorizontal: spacing.lg, marginTop: spacing.md }]}>
-              <Text style={[styles.welcomeText, { color: colors.text }]}>Olá, Dr. Silva</Text>
+              <Text style={[styles.welcomeText, { color: colors.text }]}>Olá, {user?.name || 'veterinário'}</Text>
               <Text style={[styles.welcomeSub, { color: colors.textSecondary }]}>Você tem {criticalCount} pacientes em estado crítico.</Text>
               
               <View style={styles.summaryGrid}>
@@ -109,9 +111,14 @@ export const VetDashboard = ({ navigation }: any) => {
 
             <View style={[styles.sectionHeaderRow, { paddingHorizontal: spacing.lg, marginVertical: spacing.md }]}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Triagem de Risco</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Patients')}>
-                <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: 13 }}>VER TODOS</Text>
-              </TouchableOpacity>
+              <View style={styles.headerActions}>
+                <TouchableOpacity onPress={() => navigation.navigate('Appointments')}>
+                  <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: 13 }}>CONSULTAS</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Patients')}>
+                  <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: 13 }}>VER TODOS</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </>
         }
@@ -120,7 +127,7 @@ export const VetDashboard = ({ navigation }: any) => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <View style={[styles.emptyIconCircle, { backgroundColor: colors.divider + '20' }]}>
-              <MaterialCommunityIcons name="dog-variant" size={48} color={colors.divider} />
+              <MaterialCommunityIcons name="dog" size={48} color={colors.divider} />
             </View>
             <Text style={[styles.emptyText, { color: colors.text, fontWeight: 'bold', marginTop: 16 }]}>Nenhum paciente</Text>
             <Text style={[styles.emptySub, { color: colors.textSecondary, textAlign: 'center', marginTop: 4 }]}>Vincule pacientes para começar o monitoramento.</Text>
@@ -194,6 +201,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 16,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 16,
   },
   sectionTitle: {
     fontSize: 18,
@@ -269,4 +280,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
