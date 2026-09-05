@@ -69,4 +69,23 @@ export interface SensorData {
   activityLevel: number;
   battery: number;
   status: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface ActivitySummary {
+  petId: number;
+  name: string;
+  readings: number;
+  averageTemperature: number;
+  averageHeartRate: number;
+  averageActivityLevel: number;
+}
+
+export interface PetLocation {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+  timestamp: string;
 }

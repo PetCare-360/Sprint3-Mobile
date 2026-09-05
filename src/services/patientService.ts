@@ -1,5 +1,5 @@
 import { httpClient } from './httpClient';
-import { Pet, PetApiResponse, PetRequest } from '../types/pet';
+import { ActivitySummary, Pet, PetApiResponse, PetRequest, PetLocation, SensorData } from '../types/pet';
 
 const activityLabel = (value: number): Pet['activity'] => {
   if (value < 34) return 'Baixa';
@@ -71,8 +71,27 @@ export const PatientService = {
     };
   },
 
-  async getMonitoring(id: string): Promise<{ content: import('../types/pet').SensorData[] }> {
-    const { data } = await httpClient.get<{ content: import('../types/pet').SensorData[] }>(`/pets/${id}/monitoring`);
+  async getMonitoring(id: string): Promise<{ content: SensorData[] }> {
+    const { data } = await httpClient.get<{ content: SensorData[] }>(`/pets/${id}/monitoring`);
+    return data;
+  },
+
+  async getLocation(id: string): Promise<PetLocation> {
+    const { data } = await httpClient.get<SensorData>(`/pets/${id}/location`);
+    if (data.latitude === undefined || data.longitude === undefined) {
+      throw new Error('A API não retornou uma localização válida para este pet.');
+    }
+    return {
+      latitude: data.latitude,
+      longitude: data.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+      timestamp: data.timestamp,
+    };
+  },
+
+  async getActivitySummary(id: string): Promise<ActivitySummary> {
+    const { data } = await httpClient.get<ActivitySummary>(`/pets/${id}/activity-summary`);
     return data;
   },
 

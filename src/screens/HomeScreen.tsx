@@ -13,7 +13,7 @@ const { width } = Dimensions.get('window');
 export const HomeScreen = () => {
   const { user } = useAuth();
   const { colors, spacing, typography, radius, shadows, isDark } = useTheme();
-  const { status, localPet, loading, loadData, petName, petImage } = useHomeData();
+  const { status, location, localPet, activitySummary, loading, loadData, petName, petImage } = useHomeData();
 
   if (loading && !status) {
     return (
@@ -141,8 +141,12 @@ export const HomeScreen = () => {
               <MaterialCommunityIcons name="map-marker" size={24} color={colors.primary} />
             </View>
             <View style={styles.locationInfo}>
-              <Text style={[styles.locationTitle, { color: colors.text, fontSize: typography.sizes.md }]}>Centro, São Paulo - SP</Text>
-              <Text style={[styles.locationSubtitle, { color: colors.textSecondary, fontSize: typography.sizes.sm }]}>Visto pela última vez há 5 min</Text>
+              <Text style={[styles.locationTitle, { color: colors.text, fontSize: typography.sizes.md }]}>
+                {location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : 'Sem localização'}
+              </Text>
+              <Text style={[styles.locationSubtitle, { color: colors.textSecondary, fontSize: typography.sizes.sm }]}>
+                {location ? `Atualizado em ${new Date(location.timestamp).toLocaleString()}` : 'Nenhuma leitura disponível'}
+              </Text>
             </View>
             <MaterialCommunityIcons name="chevron-right" size={24} color={colors.gray400} />
           </View>
@@ -157,20 +161,20 @@ export const HomeScreen = () => {
           <View style={styles.summaryContent}>
             <View style={styles.summaryItem}>
               <MaterialCommunityIcons name="walk" size={24} color={colors.primary} />
-              <Text style={[styles.summaryValue, { color: colors.text }]}>2.5km</Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Caminhada</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>{activitySummary?.averageActivityLevel ?? '-'}</Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Atividade média</Text>
             </View>
             <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
             <View style={styles.summaryItem}>
               <MaterialCommunityIcons name="sleep" size={24} color={colors.primary} />
-              <Text style={[styles.summaryValue, { color: colors.text }]}>12h</Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Sono</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>{activitySummary?.averageHeartRate ?? '-'}</Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>BPM médio</Text>
             </View>
             <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
             <View style={styles.summaryItem}>
               <MaterialCommunityIcons name="fire" size={24} color={colors.primary} />
-              <Text style={[styles.summaryValue, { color: colors.text }]}>450</Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>kcal</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>{activitySummary?.readings ?? '-'}</Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Leituras</Text>
             </View>
           </View>
         </Card>

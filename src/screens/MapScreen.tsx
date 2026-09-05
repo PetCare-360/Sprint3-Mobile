@@ -10,7 +10,7 @@ import { useMapData } from '../hooks/useMapData';
 const { width, height } = Dimensions.get('window');
 
 export const MapScreen = () => {
-  const { status, localPet, loading, petImage } = useMapData();
+  const { status, location, localPet, loading, petImage } = useMapData();
   const { colors, spacing, radius, shadows, isDark } = useTheme();
 
   if (loading) {
@@ -28,11 +28,11 @@ export const MapScreen = () => {
       <MapView
         style={styles.map}
         provider={PROVIDER_GOOGLE}
-        initialRegion={status?.location}
+        initialRegion={location}
         customMapStyle={isDark ? midnightMapStyle : []}
       >
-        {status?.location && (
-          <Marker coordinate={status.location}>
+        {location && (
+          <Marker coordinate={location}>
             <View style={styles.markerContainer}>
               <View style={[styles.markerBadge, { backgroundColor: colors.primary, borderColor: colors.white }]}>
                 {petImage ? (
@@ -62,7 +62,9 @@ export const MapScreen = () => {
             <Text style={[styles.petName, { color: colors.text }]}>{localPet?.name || 'Max'}</Text>
             <View style={styles.lastSeenBadge}>
               <View style={[styles.statusDot, { backgroundColor: colors.success }]} />
-              <Text style={[styles.lastSeenText, { color: colors.textSecondary }]}>Visto agora</Text>
+              <Text style={[styles.lastSeenText, { color: colors.textSecondary }]}>
+                {location ? new Date(location.timestamp).toLocaleString() : 'Sem leitura'}
+              </Text>
             </View>
           </View>
           
@@ -75,7 +77,9 @@ export const MapScreen = () => {
               </View>
               <View style={styles.statusInfo}>
                 <Text style={[styles.statusLabel, { color: colors.textSecondary }]}>Endereço</Text>
-                <Text style={[styles.statusValue, { color: colors.text }]} numberOfLines={1}>Centro, São Paulo</Text>
+                <Text style={[styles.statusValue, { color: colors.text }]} numberOfLines={1}>
+                  {location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : 'Sem localização'}
+                </Text>
               </View>
             </View>
             
