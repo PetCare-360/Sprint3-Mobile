@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Image, StatusBar } from 'react-native';
+import { ActivityIndicator, View, Text, StyleSheet, ScrollView, Image, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '../../components/Card';
 import { Header } from '../../components/Header';
-import { Button } from '../../components/Button';
 import { InfoCard } from '../../components/InfoCard';
 import { AlertService } from '../../services/alertService';
 import { useTheme } from '../../hooks/useTheme';
@@ -11,23 +10,19 @@ import { usePetDetails } from '../../hooks/usePetDetails';
 
 export const PetDetails = ({ route, navigation }: any) => {
   const { petId } = route.params;
-  const { colors, radius, shadows, isDark, spacing } = useTheme();
+  const { colors, radius, isDark, spacing } = useTheme();
   const {
     pet,
     alerts,
     status,
     history,
-    isModalVisible,
-    setIsModalVisible,
-    newNote,
-    setNewNote,
-    noteType,
-    setNoteType,
-    handleAddEvolution,
+    isLoading,
     getHistoryIcon,
   } = usePetDetails(petId);
 
-  if (!pet) return null;
+  if (isLoading || !pet) {
+    return <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />;
+  }
 
   const statusColor = AlertService.getStatusColor(status);
 
@@ -58,15 +53,15 @@ export const PetDetails = ({ route, navigation }: any) => {
             </View>
             <View style={styles.detailItem}>
               <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>CONTATO</Text>
-              <Text style={[styles.detailValue, { color: colors.primary }]}>{pet.phone}</Text>
+              <Text style={[styles.detailValue, { color: colors.primary }]}>-</Text>
             </View>
             <View style={styles.detailItem}>
               <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>IDADE</Text>
-              <Text style={[styles.detailValue, { color: colors.text }]}>{pet.age}</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>{pet.age ?? '-'} anos</Text>
             </View>
             <View style={styles.detailItem}>
               <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>PESO</Text>
-              <Text style={[styles.detailValue, { color: colors.text }]}>{pet.weight}</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>{pet.weight ?? '-'} kg</Text>
             </View>
           </View>
         </Card>
@@ -116,9 +111,6 @@ export const PetDetails = ({ route, navigation }: any) => {
         <View style={styles.historySection}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Prontuário</Text>
-            <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-              <MaterialCommunityIcons name="plus-circle" size={24} color={colors.primary} />
-            </TouchableOpacity>
           </View>
           
           <View style={styles.timeline}>
@@ -148,74 +140,7 @@ export const PetDetails = ({ route, navigation }: any) => {
           </View>
         </View>
 
-        <Button 
-          title="Adicionar Evolução" 
-          icon={<MaterialCommunityIcons name="pencil" size={20} color="white" />}
-          onPress={() => setIsModalVisible(true)}
-          style={{ marginTop: 20 }}
-        />
       </ScrollView>
-
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setIsModalVisible(false)}
-      >
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalContainer}
-        >
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Nova Evolução</Text>
-              <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.closeBtn}>
-                <MaterialCommunityIcons name="close" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>TIPO DE ATENDIMENTO</Text>
-            <View style={styles.typeSelector}>
-              {(['consulta', 'vacina', 'exame', 'cirurgia'] as const).map((type) => (
-                <TouchableOpacity 
-                  key={type}
-                  style={[
-                    styles.typeChip, 
-                    { backgroundColor: isDark ? colors.surface : colors.gray50, borderColor: colors.divider },
-                    noteType === type && { backgroundColor: colors.primary, borderColor: colors.primary }
-                  ]}
-                  onPress={() => setNoteType(type)}
-                >
-                  <Text style={[
-                    styles.typeChipText,
-                    { color: colors.textSecondary },
-                    noteType === type && { color: colors.white }
-                  ]}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>OBSERVAÇÕES CLÍNICAS</Text>
-            <TextInput
-              style={[styles.textInput, { backgroundColor: isDark ? colors.background : colors.gray50, color: colors.text, borderColor: colors.divider }]}
-              multiline
-              numberOfLines={4}
-              placeholder="Descreva aqui o estado do pet..."
-              value={newNote}
-              onChangeText={setNewNote}
-              placeholderTextColor={colors.textSecondary}
-            />
-
-            <Button 
-              title="Salvar Prontuário" 
-              onPress={handleAddEvolution}
-            />
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </View>
   );
 };
@@ -473,4 +398,3 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
 });
-

@@ -17,6 +17,9 @@ const statusLabel = (value: string): Pet['status'] => {
 const toPet = (pet: PetApiResponse): Pet => ({
   id: String(pet.id),
   name: pet.name,
+  age: pet.age,
+  weight: pet.weight,
+  species: pet.species,
   breed: pet.breed,
   owner: undefined,
   collarId: pet.deviceId,
@@ -66,6 +69,21 @@ export const PatientService = {
       battery: latest?.battery ?? 0,
       status: statusLabel(data.currentStatus),
     };
+  },
+
+  async getMonitoring(id: string): Promise<{ content: import('../types/pet').SensorData[] }> {
+    const { data } = await httpClient.get<{ content: import('../types/pet').SensorData[] }>(`/pets/${id}/monitoring`);
+    return data;
+  },
+
+  async getAlerts(id: string): Promise<{ content: Array<{
+    id: number;
+    createdAt: string;
+    level: string;
+    message: string;
+  }> }> {
+    const { data } = await httpClient.get(`/pets/${id}/alerts`);
+    return data;
   },
 
   async addPatient(request: PetRequest): Promise<Pet> {

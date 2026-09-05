@@ -12,6 +12,9 @@ export interface Pet {
   id: string;
   collarId?: string;
   name: string;
+  age?: number;
+  weight?: number;
+  species?: string;
   breed: string;
   owner?: string;
   heartRate: number;
@@ -56,4 +59,14 @@ export interface PetApiResponse {
   deviceId: string;
   currentStatus: string;
   device?: { deviceId?: string; battery?: number };
+}
+
+export interface SensorData {
+  id: number;
+  timestamp: string;
+  temperature: number;
+  heartRate: number;
+  activityLevel: number;
+  battery: number;
+  status: string;
 }
