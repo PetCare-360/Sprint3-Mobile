@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, KeyboardAvoidingView, Platform, ActivityIndicator, Switch} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Switch} from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useProfileForm } from '../hooks/useProfileForm';
@@ -9,20 +9,18 @@ import { Card } from '../components/Card';
 import { Input } from '../components/Input';
 
 export const ProfileScreen = () => {
-  const { colors, spacing, radius, typography, isDark, toggleTheme, shadows } = useTheme();
+  const { colors, spacing, typography, isDark, toggleTheme } = useTheme();
   const {
     petName,
     breed,
     age,
     weight,
     ownerName,
-    imagem,
     isLoading,
     setPetName,
     setBreed,
     setAge,
     setWeight,
-    pickImage,
     handleSave,
     handleLogout,
   } = useProfileForm();
@@ -47,21 +45,9 @@ export const ProfileScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.profileHeader}>
-          <TouchableOpacity onPress={pickImage} style={[styles.imageContainer, { ...shadows.md }]}>
-            {imagem ? (
-              <Image 
-                source={{ uri: `data:image/png;base64,${imagem}` }} 
-                style={[styles.profileImage, { borderRadius: radius.xxl }]} 
-              />
-            ) : (
-              <View style={[styles.placeholderImage, { backgroundColor: colors.card, borderRadius: radius.xxl }]}>
-                <Icon name="camera" size={32} color={colors.primary} />
-              </View>
-            )}
-            <View style={[styles.editBadge, { backgroundColor: colors.primary, borderColor: colors.card }]}>
-              <Icon name="pencil" size={14} color="#FFF" />
-            </View>
-          </TouchableOpacity>
+          <View style={[styles.placeholderImage, { backgroundColor: colors.card }]}>
+            <Icon name="account" size={32} color={colors.primary} />
+          </View>
           <Text style={[styles.profileName, { color: colors.text }]}>{petName}</Text>
           <Text style={[styles.profileBreed, { color: colors.textSecondary }]}>{breed}</Text>
           

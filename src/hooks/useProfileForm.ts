@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Alert, Platform, ToastAndroid } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { salvar } from '../services/imageApi';
 import { PatientService } from '../services/patientService';
 import { useAuth } from '../context/AuthContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,7 +17,6 @@ export function useProfileForm() {
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
   const [ownerName] = useState(user?.name || '');
-  const [imagem, setImagem] = useState<string | null>(null);
   const updateMutation = useMutation({
     mutationFn: ({ id, request }: { id: string; request: ReturnType<typeof PatientService.buildRequest> }) =>
       PatientService.updatePatient(id, request),
@@ -34,31 +31,6 @@ export function useProfileForm() {
       setWeight(String(pet.weight ?? ''));
     }
   }, [pet]);
-
-  const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert('Permissão Necessária', 'É necessário permissão para acessar a galeria');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: false,
-      aspect: [4, 3],
-      quality: 0.2,
-      base64: true,
-    });
-    const selectedImage = result.assets?.[0];
-    if (!selectedImage?.base64) return;
-    try {
-      await salvar(selectedImage.base64);
-      setImagem(selectedImage.base64);
-      if (Platform.OS === 'android') ToastAndroid.show('Imagem salva com sucesso!', ToastAndroid.SHORT);
-      else Alert.alert('Sucesso', 'Imagem salva com sucesso!');
-    } catch {
-      Alert.alert('Erro', 'Não foi possível salvar a imagem remotamente.');
-    }
-  };
 
   const handleSave = () => {
     if (!pet) {
@@ -95,13 +67,11 @@ export function useProfileForm() {
     age,
     weight,
     ownerName,
-    imagem,
     isLoading: isLoading || updateMutation.isPending,
     setPetName,
     setBreed,
     setAge,
     setWeight,
-    pickImage,
     handleSave,
     handleLogout: () => Alert.alert('Sair', 'Deseja realmente sair da sua conta?', [
       { text: 'Cancelar', style: 'cancel' },

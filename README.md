@@ -48,8 +48,6 @@ O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade
 O aplicativo consome a API Spring Boot da Sprint 3. Crie um arquivo `.env` na raiz do projeto e configure:
 ```env
 EXPO_PUBLIC_API_BASE_URL=http://localhost:8080
-EXPO_PUBLIC_FIREBASE_BASE_URL=https://seu-projeto.firebaseio.com
-EXPO_PUBLIC_FIREBASE_API_TOKEN=seu-api-token
 ```
 
 ### Instalação
@@ -87,7 +85,6 @@ O projeto depende das seguintes bibliotecas principais:
 - **axios:** Cliente para chamadas HTTP da API Java.
 - **@tanstack/react-query:** Gerenciamento das consultas e mutações da API.
 - **react-native-maps:** Componente de mapa para localização de serviços.
-- **expo-image-picker:** Permite a seleção de imagens para o perfil.
 - **@react-native-async-storage/async-storage:** Armazenamento persistente de dados.
 - **@expo/vector-icons:** Biblioteca de ícones (MaterialCommunityIcons).
 - **react-native-safe-area-context & screens:** Dependências fundamentais para navegação segura e performática.
@@ -112,7 +109,7 @@ O aplicativo conta com uma identidade visual própria e escalável, focada em us
   ├── screens/    # Telas da aplicação (Auth, Tutor, Vet)
   ├── navigation/ # Configurações de fluxo e roteamento
   ├── services/   # Integrações com APIs externas
-  ├── storage/    # Lógica de persistência local (AsyncStorage)
+  ├── storage/    # Persistência da sessão do usuário (AsyncStorage)
   ├── theme/      # Design System (tokens e provedores)
   ├── hooks/      # Hooks customizados (useTheme, etc)
   ├── context/    # Provedores de estado global
