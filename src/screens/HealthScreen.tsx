@@ -5,11 +5,13 @@ import { Card } from '../components/Card';
 import { Header } from '../components/Header';
 import { InfoCard } from '../components/InfoCard';
 import { useTheme } from '../hooks/useTheme';
+import { useHomeData } from '../hooks/useHomeData';
 
 const { width } = Dimensions.get('window');
 
 export const HealthScreen = () => {
   const { colors, spacing, typography, radius, isDark } = useTheme();
+  const { status, loading } = useHomeData();
 
   return (
     <View style={[styles.mainContainer, { backgroundColor: colors.background }]}>
@@ -22,7 +24,7 @@ export const HealthScreen = () => {
         <View style={styles.headerInfo}>
           <Text style={[styles.title, { color: colors.text }]}>Estado Geral</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Max está com todos os sinais vitais estáveis.
+            {loading ? 'Carregando dados da API...' : `${status?.name || 'Seu pet'} está com status ${status?.status || 'indisponível'}.`}
           </Text>
         </View>
 
@@ -36,18 +38,18 @@ export const HealthScreen = () => {
           <View style={styles.vitalRow}>
             <View style={styles.vitalItem}>
               <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>ATUAL</Text>
-              <Text style={[styles.vitalValue, { color: colors.text }]}>84 <Text style={styles.vitalUnit}>bpm</Text></Text>
+              <Text style={[styles.vitalValue, { color: colors.text }]}>{status?.heartRate || '-'} <Text style={styles.vitalUnit}>bpm</Text></Text>
             </View>
             <View style={[styles.dividerVertical, { backgroundColor: colors.divider }]} />
             <View style={styles.vitalItem}>
               <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>MÉDIA</Text>
-              <Text style={[styles.vitalValue, { color: colors.textSecondary }]}>78 <Text style={styles.vitalUnit}>bpm</Text></Text>
+              <Text style={[styles.vitalValue, { color: colors.textSecondary }]}>API</Text>
             </View>
           </View>
           <View style={[styles.statusBox, { backgroundColor: colors.divider + '40' }]}>
             <MaterialCommunityIcons name="information-outline" size={16} color={colors.textSecondary} />
             <Text style={[styles.statusText, { color: colors.textSecondary }]}>
-              Dentro da faixa normal para o repouso.
+              Dados consolidados pela API do backend.
             </Text>
           </View>
         </Card>
@@ -62,21 +64,21 @@ export const HealthScreen = () => {
           <View style={styles.vitalRow}>
             <View style={styles.vitalItem}>
               <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>ATUAL</Text>
-              <Text style={[styles.vitalValue, { color: colors.text }]}>38.5 <Text style={styles.vitalUnit}>°C</Text></Text>
+              <Text style={[styles.vitalValue, { color: colors.text }]}>{status ? status.temperature.toFixed(1) : '-'} <Text style={styles.vitalUnit}>°C</Text></Text>
             </View>
             <View style={[styles.dividerVertical, { backgroundColor: colors.divider }]} />
             <View style={styles.vitalItem}>
               <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>MÉDIA</Text>
-              <Text style={[styles.vitalValue, { color: colors.textSecondary }]}>38.2 <Text style={styles.vitalUnit}>°C</Text></Text>
+              <Text style={[styles.vitalValue, { color: colors.textSecondary }]}>API</Text>
             </View>
           </View>
           <View style={styles.progressWrapper}>
             <View style={styles.progressLabels}>
-              <Text style={[styles.progressText, { color: colors.textSecondary }]}>Estável</Text>
-              <Text style={[styles.progressText, { color: colors.textSecondary }]}>100%</Text>
+              <Text style={[styles.progressText, { color: colors.textSecondary }]}>{status?.status || 'Indisponível'}</Text>
+              <Text style={[styles.progressText, { color: colors.textSecondary }]}>{status?.battery ?? '-'}%</Text>
             </View>
             <View style={[styles.progressContainer, { backgroundColor: isDark ? colors.divider : colors.gray100 }]}>
-              <View style={[styles.progressBar, { width: '85%', backgroundColor: colors.success }]} />
+              <View style={[styles.progressBar, { width: `${status?.battery ?? 0}%`, backgroundColor: colors.success }]} />
             </View>
           </View>
         </Card>
@@ -90,17 +92,17 @@ export const HealthScreen = () => {
           </View>
           <View style={styles.vitalRow}>
             <View style={styles.vitalItem}>
-              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>PASSOS</Text>
-              <Text style={[styles.vitalValue, { color: colors.text }]}>4.250</Text>
+              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>ATIVIDADE</Text>
+              <Text style={[styles.vitalValue, { color: colors.text }]}>{status?.activity || '-'}</Text>
             </View>
             <View style={[styles.dividerVertical, { backgroundColor: colors.divider }]} />
             <View style={styles.vitalItem}>
-              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>META</Text>
-              <Text style={[styles.vitalValue, { color: colors.warning }]}>6.000</Text>
+              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>BATERIA</Text>
+              <Text style={[styles.vitalValue, { color: colors.warning }]}>{status?.battery ?? '-'}%</Text>
             </View>
           </View>
           <View style={[styles.progressContainer, { backgroundColor: isDark ? colors.divider : colors.gray100, marginTop: 12 }]}>
-            <View style={[styles.progressBar, { width: '70%', backgroundColor: colors.primary }]} />
+            <View style={[styles.progressBar, { width: `${status?.battery ?? 0}%`, backgroundColor: colors.primary }]} />
           </View>
         </Card>
 
@@ -111,7 +113,7 @@ export const HealthScreen = () => {
           <View style={styles.tipsContent}>
             <Text style={styles.tipsTitle}>Dica de Saúde</Text>
             <Text style={styles.tipsText}>
-              Mantenha a hidratação de Max constante em dias quentes para evitar flutuações.
+              Consulte regularmente os dados da coleira para acompanhar a evolução do seu pet.
             </Text>
           </View>
         </Card>
@@ -253,4 +255,3 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
-

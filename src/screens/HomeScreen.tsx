@@ -75,12 +75,12 @@ export const HomeScreen = () => {
             BEM-VINDO DE VOLTA
           </Text>
           <Text style={[styles.welcomeText, { color: colors.text, fontSize: typography.sizes.hg }]}>
-            Olá, {localPet?.ownerName || user?.name || 'Tutor'}
+            Olá, {user?.name || 'Tutor'}
           </Text>
           <View style={styles.statusBadge}>
             <View style={[styles.statusDot, { backgroundColor: colors.success }]} />
             <Text style={[styles.subtitle, { color: colors.textSecondary, fontSize: typography.sizes.md }]}>
-              {petName} está <Text style={{ color: colors.success, fontWeight: 'bold' }}>saudável</Text> hoje!
+              {petName} está <Text style={{ color: colors.success, fontWeight: 'bold' }}>{status?.status || 'sem dados'}</Text> hoje!
             </Text>
           </View>
         </View>
@@ -97,27 +97,27 @@ export const HomeScreen = () => {
         <View style={styles.vitalsGrid}>
           <InfoCard 
             label="Temperatura" 
-            value={status?.temperature.toFixed(1) || '38.5'} 
+            value={status ? status.temperature.toFixed(1) : '-'} 
             unit="°C"
             icon="thermometer"
             iconColor={colors.danger} 
           />
           <InfoCard 
             label="Batimentos" 
-            value={status?.heartRate || '92'} 
+            value={status?.heartRate || '-'} 
             unit="bpm"
             icon="heart-pulse"
             iconColor={colors.secondary} 
           />
           <InfoCard 
             label="Atividade" 
-            value={status?.activity || 'Alta'} 
+            value={status?.activity || '-'} 
             icon="run"
             iconColor={colors.success} 
           />
           <InfoCard 
             label="Bateria" 
-            value={status?.battery || '84'} 
+            value={status?.battery || '-'} 
             unit="%"
             icon="battery-80"
             iconColor={colors.warning} 
@@ -295,4 +295,3 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
 });
-

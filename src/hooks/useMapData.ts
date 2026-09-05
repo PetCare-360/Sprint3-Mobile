@@ -1,23 +1,23 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { ApiService } from '../services/api';
-import { StorageService, PetData } from '../storage';
+import { PatientService } from '../services/patientService';
 import { Pet } from '../types/pet';
 
 export function useMapData() {
   const [status, setStatus] = useState<Pet | null>(null);
-  const [localPet, setLocalPet] = useState<PetData | null>(null);
+  const [localPet, setLocalPet] = useState<Pet | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [apiStatus, storedPet] = await Promise.all([
-        ApiService.getPetStatus('1'),
-        StorageService.getPetData(),
-      ]);
-      setStatus(apiStatus);
-      setLocalPet(storedPet);
+      const pets = await PatientService.getPets();
+      const firstPet = pets[0];
+      if (firstPet) {
+        const health = await PatientService.getHealthStatus(firstPet.id);
+        setStatus({ ...firstPet, ...health });
+        setLocalPet(firstPet);
+      }
     } finally {
       setLoading(false);
     }

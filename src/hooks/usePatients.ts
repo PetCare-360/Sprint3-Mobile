@@ -1,27 +1,26 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertService } from '../services/alertService';
 import { PatientService } from '../services/patientService';
 import { Pet, RiskLevel } from '../types/pet';
 
 export function usePatients() {
-  const [patients, setPatients] = useState<Pet[]>([]);
+  const queryClient = useQueryClient();
+  const { data: patients = [], isLoading } = useQuery({
+    queryKey: ['patients'],
+    queryFn: PatientService.getPatients,
+  });
   const [search, setSearch] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [collarId, setCollarId] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const loadPatients = useCallback(async () => {
-    const data = await PatientService.getPatients();
-    setPatients(data);
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadPatients();
-    }, [loadPatients])
-  );
+  const [patientName, setPatientName] = useState('');
+  const [editingPatient, setEditingPatient] = useState<Pet | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const removeMutation = useMutation({
+    mutationFn: PatientService.removePatient,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['patients'] }),
+  });
 
   const handleAddPatient = async () => {
     if (!collarId.trim()) {
@@ -29,18 +28,39 @@ export function usePatients() {
       return;
     }
 
-    setIsLoading(true);
     try {
-      await PatientService.addPatient(collarId);
-      await loadPatients();
+      setIsSaving(true);
+      const request = PatientService.buildRequest({
+        name: patientName || `Pet ${collarId}`,
+        age: 0,
+        weight: 1,
+        breed: 'Não informado',
+        species: 'Cão',
+        deviceId: collarId,
+      });
+      if (editingPatient) {
+        await PatientService.updatePatient(editingPatient.id, request);
+      } else {
+        await PatientService.addPatient(request);
+      }
+      await queryClient.invalidateQueries({ queryKey: ['patients'] });
       setIsModalVisible(false);
       setCollarId('');
+      setPatientName('');
+      setEditingPatient(null);
       Alert.alert('Sucesso', 'Paciente vinculado com sucesso.');
-    } catch {
-      Alert.alert('Erro', 'Não foi possível vincular o paciente.');
+    } catch (error) {
+      Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível vincular o paciente.');
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
+  };
+
+  const handleEditPatient = (patient: Pet) => {
+    setEditingPatient(patient);
+    setPatientName(patient.name);
+    setCollarId(patient.collarId || '');
+    setIsModalVisible(true);
   };
 
   const handleDeletePatient = (id: string, name: string) => {
@@ -53,8 +73,7 @@ export function usePatients() {
           text: 'Remover',
           style: 'destructive',
           onPress: async () => {
-            await PatientService.removePatient(id);
-            await loadPatients();
+            removeMutation.mutate(id);
           },
         },
       ]
@@ -88,9 +107,13 @@ export function usePatients() {
     setIsModalVisible,
     collarId,
     setCollarId,
-    isLoading,
+    patientName,
+    setPatientName,
+    editingPatient,
+    isLoading: isLoading || isSaving || removeMutation.isPending,
     filteredPatients,
     handleAddPatient,
+    handleEditPatient,
     handleDeletePatient,
   };
 }

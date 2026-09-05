@@ -19,9 +19,13 @@ export const Patients = ({ navigation }: any) => {
     setIsModalVisible,
     collarId,
     setCollarId,
+    patientName,
+    setPatientName,
+    editingPatient,
     isLoading,
     filteredPatients,
     handleAddPatient,
+    handleEditPatient,
     handleDeletePatient,
   } = usePatients();
 
@@ -46,6 +50,12 @@ export const Patients = ({ navigation }: any) => {
                 <Text style={[styles.collarId, { color: colors.primary }]}>ID: {item.collarId}</Text>
               </View>
             </View>
+            <TouchableOpacity 
+              onPress={() => handleEditPatient(item)}
+              style={[styles.deleteButton, { backgroundColor: colors.primary + '10' }]}
+            >
+              <MaterialCommunityIcons name="pencil-outline" size={20} color={colors.primary} />
+            </TouchableOpacity>
             <TouchableOpacity 
               onPress={() => handleDeletePatient(item.id, item.name)}
               style={[styles.deleteButton, { backgroundColor: colors.danger + '10' }]}
@@ -96,7 +106,7 @@ export const Patients = ({ navigation }: any) => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <View style={[styles.emptyIconCircle, { backgroundColor: colors.divider + '20' }]}>
-              <MaterialCommunityIcons name="dog-variant" size={60} color={colors.divider} />
+              <MaterialCommunityIcons name="dog" size={60} color={colors.divider} />
             </View>
             <Text style={[styles.emptyText, { color: colors.text, fontWeight: 'bold', marginTop: 16 }]}>Nenhum paciente</Text>
             <Text style={[styles.emptySub, { color: colors.textSecondary, textAlign: 'center', marginTop: 4 }]}>Tente buscar por outro nome ou raça.</Text>
@@ -117,7 +127,7 @@ export const Patients = ({ navigation }: any) => {
           <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Novo Paciente</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>{editingPatient ? 'Editar paciente' : 'Novo Paciente'}</Text>
               <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.closeBtn}>
                 <MaterialCommunityIcons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
@@ -128,6 +138,13 @@ export const Patients = ({ navigation }: any) => {
             </Text>
             
             <Input
+              label="NOME DO PET"
+              placeholder="Nome"
+              value={patientName}
+              onChangeText={setPatientName}
+              autoCapitalize="words"
+            />
+            <Input
               label="ID DA COLEIRA"
               placeholder="Ex: COL-12345"
               value={collarId}
@@ -137,7 +154,7 @@ export const Patients = ({ navigation }: any) => {
             />
 
             <Button 
-              title="Vincular Dispositivo" 
+              title={editingPatient ? 'Salvar alterações' : 'Vincular Dispositivo'} 
               onPress={handleAddPatient}
               loading={isLoading}
               style={{ marginTop: 8 }}

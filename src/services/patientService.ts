@@ -1,57 +1,114 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Pet } from '../types/pet';
+import { httpClient } from './httpClient';
+import { Pet, PetApiResponse, PetRequest } from '../types/pet';
 
-const STORAGE_KEY = '@petcare360:patients';
+const activityLabel = (value: number): Pet['activity'] => {
+  if (value < 34) return 'Baixa';
+  if (value < 67) return 'Média';
+  return 'Alta';
+};
 
-const cat1 = require('../../public/cat1.jpg');
-const dog1 = require('../../public/dog1.jpg');
-const dog2 = require('../../public/dog2.jpg');
+const statusLabel = (value: string): Pet['status'] => {
+  const normalized = value.toLowerCase();
+  if (normalized.includes('critical')) return 'critical';
+  if (normalized.includes('warning')) return 'warning';
+  return 'stable';
+};
 
-const initialPatients: Partial<Pet>[] = [
-  { id: '1', collarId: 'COL-001', name: 'Max', breed: 'Golden Retriever', owner: 'Carlos Silva', heartRate: 140, temperature: 39.5, activity: 'Alta', image: dog1 },
-  { id: '2', collarId: 'COL-002', name: 'Luna', breed: 'Siamês', owner: 'Ana Oliveira', heartRate: 80, temperature: 38.5, activity: 'Baixa', image: cat1 },
-  { id: '3', collarId: 'COL-003', name: 'Thor', breed: 'Bulldog', owner: 'João Souza', heartRate: 110, temperature: 38.8, activity: 'Média', image: dog2 },
-];
+const toPet = (pet: PetApiResponse): Pet => ({
+  id: String(pet.id),
+  name: pet.name,
+  breed: pet.breed,
+  owner: undefined,
+  collarId: pet.deviceId,
+  heartRate: 0,
+  temperature: 0,
+  activity: 'Média',
+  battery: pet.device?.battery ?? 0,
+  status: statusLabel(pet.currentStatus),
+});
 
 export const PatientService = {
   async getPatients(): Promise<Pet[]> {
-    try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      const patients: Pet[] = stored ? JSON.parse(stored) : initialPatients;
-      
-      return patients.map(p => {
-        const images: Record<string, any> = { '1': dog1, '2': cat1, '3': dog2 };
-        return { ...p, image: images[p.id] || p.image || dog1 };
-      });
-    } catch {
-      return initialPatients as Pet[];
-    }
+    const { data } = await httpClient.get<PetApiResponse[]>('/pets/patients');
+    return data.map(toPet);
   },
 
-  async addPatient(collarId: string): Promise<Pet> {
-    const patients = await this.getPatients();
-    
-    const newPatient: Pet = {
-      id: Math.random().toString(36).substring(2, 9),
-      collarId,
-      name: `Pet ${collarId.split('-')[1] || 'Novo'}`,
-      breed: 'Raça Indefinida',
-      owner: 'Tutor Pendente',
-      heartRate: 90 + Math.floor(Math.random() * 20),
-      temperature: 38.5 + (Math.random() * 0.5),
-      activity: 'Média',
-      battery: 100,
-      image: dog1
-    };
+  async getPets(): Promise<Pet[]> {
+    const { data } = await httpClient.get<PetApiResponse[]>('/pets/all');
+    return data.map(toPet);
+  },
 
-    const updatedPatients = [newPatient, ...patients];
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPatients));
-    return newPatient;
+  async getPet(id: string): Promise<Pet> {
+    const { data } = await httpClient.get<PetApiResponse>(`/pets/${id}`);
+    return toPet(data);
+  },
+
+  async getHealthStatus(id: string): Promise<Pet> {
+    const { data } = await httpClient.get<{
+      petId: number;
+      name: string;
+      currentStatus: string;
+      latestData?: {
+        temperature: number;
+        heartRate: number;
+        activityLevel: number;
+        battery: number;
+      };
+    }>(`/pets/${id}/health-status`);
+    const latest = data.latestData;
+    return {
+      id: String(data.petId),
+      name: data.name,
+      breed: '',
+      heartRate: latest?.heartRate ?? 0,
+      temperature: latest?.temperature ?? 0,
+      activity: activityLabel(latest?.activityLevel ?? 50),
+      battery: latest?.battery ?? 0,
+      status: statusLabel(data.currentStatus),
+    };
+  },
+
+  async addPatient(request: PetRequest): Promise<Pet> {
+    const { data } = await httpClient.post<PetApiResponse>('/pets', request);
+    return toPet(data);
+  },
+
+  async updatePatient(id: string, request: PetRequest): Promise<Pet> {
+    const { data } = await httpClient.put<PetApiResponse>(`/pets/${id}`, request);
+    return toPet(data);
   },
 
   async removePatient(id: string): Promise<void> {
-    const patients = await this.getPatients();
-    const updatedPatients = patients.filter(p => p.id !== id);
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPatients));
-  }
+    await httpClient.delete(`/pets/${id}`);
+  },
+
+  buildRequest(values: {
+    name: string;
+    age: number;
+    weight: number;
+    breed: string;
+    species: string;
+    deviceId: string;
+    temperature?: number;
+    heartRate?: number;
+    activity?: Pet['activity'];
+    battery?: number;
+  }): PetRequest {
+    const activityLevel = values.activity === 'Baixa' ? 20 : values.activity === 'Alta' ? 80 : 50;
+    return {
+      name: values.name.trim(),
+      age: values.age,
+      weight: values.weight,
+      breed: values.breed.trim(),
+      species: values.species.trim(),
+      deviceId: values.deviceId.trim(),
+      initialSensorData: {
+        timestamp: new Date().toISOString(),
+        temperature: values.temperature ?? 38.5,
+        heartRate: values.heartRate ?? 80,
+        activityLevel,
+        battery: values.battery ?? 100,
+      },
+    };
+  },
 };
