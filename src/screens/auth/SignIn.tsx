@@ -10,8 +10,8 @@ import { Card } from '../../components/Card';
 const logoBranco = require('../../../public/branco.png');
 const logoPreto = require('../../../public/preto.png');
 
-export const SignIn = () => {
-  const { login, password, isSubmitting, setLogin, setPassword, fillDemoCredentials, handleSignIn } = useSignIn();
+export const SignIn = ({ navigation }: any) => {
+  const { email, password, isSubmitting, setEmail, setPassword, handleSignIn } = useSignIn();
   const { colors, spacing, typography, radius, isDark, shadows, toggleTheme } = useTheme();
 
   const topBgColor = colors.primary;
@@ -70,12 +70,13 @@ export const SignIn = () => {
 
           <View style={styles.form}>
             <Input
-              label="Usuário"
-              placeholder="Digite seu login"
-              value={login}
-              onChangeText={setLogin}
+              label="E-mail"
+              placeholder="Digite seu e-mail"
+              value={email}
+              onChangeText={setEmail}
               autoCapitalize="none"
-              icon={<MaterialCommunityIcons name="account" size={20} color={inputIconColor} />}
+              keyboardType="email-address"
+              icon={<MaterialCommunityIcons name="email" size={20} color={inputIconColor} />}
             />
 
             <Input
@@ -97,29 +98,17 @@ export const SignIn = () => {
               loading={isSubmitting}
               style={styles.button}
             />
+
+            <TouchableOpacity
+              style={styles.signUpLink}
+              onPress={() => navigation.navigate('SignUp')}
+            >
+              <Text style={[styles.signUpLinkText, { color: contentSecondaryTextColor }]}>
+                Não tem conta? <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Cadastre-se</Text>
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.demoSection}>
-            <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-            <Text style={[styles.demoLabel, { color: contentSecondaryTextColor, backgroundColor: bottomBgColor }]}>
-              ACESSO DEMO
-            </Text>
-
-            <View style={styles.demoBadges}>
-              <TouchableOpacity 
-                style={[styles.demoBadge, { backgroundColor: colors.surface, borderColor: colors.divider }]}
-                onPress={() => fillDemoCredentials('admin', 'admin')}
-              >
-                <Text style={[styles.demoBadgeText, { color: contentTextColor }]}>Veterinário</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.demoBadge, { backgroundColor: colors.surface, borderColor: colors.divider }]}
-                onPress={() => fillDemoCredentials('pet', 'pet')}
-              >
-                <Text style={[styles.demoBadgeText, { color: contentTextColor }]}>Tutor</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -241,5 +230,12 @@ const styles = StyleSheet.create({
   demoBadgeText: {
     fontSize: 13,
     fontWeight: 'bold',
+  },
+  signUpLink: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  signUpLinkText: {
+    fontSize: 14,
   },
 });

@@ -9,6 +9,7 @@ import { MapScreen } from '../screens/MapScreen';
 import { AlertsScreen } from '../screens/AlertsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SignIn } from '../screens/auth/SignIn';
+import { SignUp } from '../screens/auth/SignUp';
 import { VetStack } from './VetStack';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -87,6 +88,13 @@ const TutorTabs = () => {
   );
 };
 
+const AuthStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="SignIn" component={SignIn} />
+    <Stack.Screen name="SignUp" component={SignUp} />
+  </Stack.Navigator>
+);
+
 export const AppNavigator = () => {
   const { user, loading } = useAuth();
   const { colors } = useTheme();
@@ -102,8 +110,8 @@ export const AppNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!user ? (
-        <Stack.Screen name="Auth" component={SignIn} />
-      ) : user.role === 'admin' ? (
+        <Stack.Screen name="Auth" component={AuthStack} />
+      ) : user.role === 'ROLE_VETERINARIO' || user.role === 'ROLE_ADMIN' ? (
         <Stack.Screen name="Vet" component={VetStack} />
       ) : (
         <Stack.Screen name="Tutor" component={TutorTabs} />

@@ -1,39 +1,71 @@
-import { userStorage, User } from '../storage/userStorage';
+import { httpClient } from './httpClient';
+import { AuthResponse, RegisterRequest, UserResponse } from '../types/auth';
+import { ApiException } from '../types/apiException';
+
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'response' in error &&
+    (error as any).response?.data?.message
+  ) {
+    return (error as any).response.data.message as string;
+  }
+  return fallback;
+}
 
 export const authService = {
-  async signIn(login: string, password: string): Promise<User | null> {
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    let user: User | null = null;
-
-    if (login === 'admin' && password === 'admin') {
-      user = {
-        id: '1',
-        name: 'Dr. Veterinário',
-        role: 'admin',
-        login: 'admin'
-      };
-    } else if (login === 'pet' && password === 'pet') {
-      user = {
-        id: '2',
-        name: 'Tutor de Pet',
-        role: 'pet',
-        login: 'pet'
-      };
+  async signIn(email: string, password: string): Promise<UserResponse> {
+    try {
+      const { data } = await httpClient.post<AuthResponse>('/auth/login', {
+        email,
+        password,
+      });
+      return data.user;
+    } catch (error) {
+      throw new ApiException(extractErrorMessage(error, 'Não foi possível entrar. Verifique suas credenciais.'));
     }
-
-    if (user) {
-      await userStorage.saveUser(user);
-    }
-
-    return user;
   },
 
+  async signUp(request: RegisterRequest): Promise<UserResponse> {
+    try {
+      const { data } = await httpClient.post<AuthResponse>('/auth/register', request);
+      return data.user;
+    } catch (error) {
+      throw new ApiException(extractErrorMessage(error, 'Não foi possível concluir o cadastro.'));
+    }
+  },
+
+  /**
+   * A API ainda não expõe /auth/logout. Como a sessão vive num cookie
+   * HttpOnly, o "logout" do lado do app é local: limpamos o usuário
+   * armazenado. Se um endpoint de logout for adicionado, chamar aqui.
+   */
   async signOut(): Promise<void> {
-    await userStorage.removeUser();
+    return Promise.resolve();
   },
 
-  async getCurrentUser(): Promise<User | null> {
-    return await userStorage.getUser();
-  }
+  /**
+   * Não existe /auth/me na API ainda. Para saber se o cookie de sessão
+   * salvo ainda é válido quando o app reabre, batemos numa rota protegida
+   * leve e tratamos 401/403 como sessão expirada.
+   * - Trocar por GET /auth/me assim que existir.
+   * Arruma logo isso Rafuxo....
+   */
+  async validateSession(): Promise<boolean> {
+    try {
+      await httpClient.get('/pets/all');
+      return true;
+    } catch (error) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        ((error as any).response?.status === 401 || (error as any).response?.status === 403)
+      ) {
+        return false;
+      }
+      return true;
+    }
+  },
 };

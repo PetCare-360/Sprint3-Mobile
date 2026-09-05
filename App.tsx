@@ -3,6 +3,9 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/
 import { AppNavigator } from './src/navigation';
 import { AuthProvider } from './src/context/AuthContext';
 import { ThemeProvider, useAppTheme } from './src/theme/themeProvider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 const AppContent = () => {
   const { theme, isDark } = useAppTheme();
@@ -28,10 +31,12 @@ const AppContent = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
