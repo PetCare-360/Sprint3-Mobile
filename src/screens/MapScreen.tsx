@@ -89,7 +89,9 @@ export const MapScreen = () => {
               <View style={styles.statusInfo}>
                 <Text style={[styles.statusLabel, { color: colors.textSecondary }]}>Endereço</Text>
                 <Text style={[styles.statusValue, { color: colors.text }]} numberOfLines={1}>
-                  {location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : 'Sem localização'}
+                  {location && typeof location.latitude === 'number' && typeof location.longitude === 'number'
+                    ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`
+                    : 'Sem localização'}
                 </Text>
               </View>
             </View>

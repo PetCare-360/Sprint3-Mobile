@@ -83,7 +83,7 @@ export const PetDetails = ({ route, navigation }: any) => {
         <View style={styles.vitalsGrid}>
           <InfoCard 
             label="Temperatura" 
-            value={pet.temperature.toFixed(1)} 
+            value={typeof pet.temperature === 'number' ? pet.temperature.toFixed(1) : '-'} 
             unit="°C" 
             icon="thermometer" 
             iconColor={colors.danger} 

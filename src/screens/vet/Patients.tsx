@@ -1,9 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Image, KeyboardAvoidingView, Platform} from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, Platform} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '../../components/Card';
-import { Button } from '../../components/Button';
-import { Input } from '../../components/Input';
 import { Header } from '../../components/Header';
 import { useTheme } from '../../hooks/useTheme';
 import { usePatients } from '../../hooks/usePatients';
@@ -11,31 +9,11 @@ import { AlertService } from '../../services/alertService';
 import { Pet, RiskLevel } from '../../types/pet';
 
 export const Patients = ({ navigation }: any) => {
-  const { colors, spacing, typography, radius, isDark, shadows } = useTheme();
+  const { colors, spacing, radius, isDark } = useTheme();
   const {
     search,
     setSearch,
-    isModalVisible,
-    setIsModalVisible,
-    collarId,
-    setCollarId,
-    patientName,
-    setPatientName,
-    breed,
-    setBreed,
-    species,
-    setSpecies,
-    age,
-    setAge,
-    weight,
-    setWeight,
-    editingPatient,
-    isLoading,
     filteredPatients,
-    handleAddPatient,
-    handleEditPatient,
-    handleNewPatient,
-    handleDeletePatient,
   } = usePatients();
 
   const renderPatient = ({ item }: { item: Pet & { status: RiskLevel } }) => {
@@ -59,18 +37,6 @@ export const Patients = ({ navigation }: any) => {
                 <Text style={[styles.collarId, { color: colors.primary }]}>ID: {item.collarId}</Text>
               </View>
             </View>
-            <TouchableOpacity 
-              onPress={() => handleEditPatient(item)}
-              style={[styles.deleteButton, { backgroundColor: colors.primary + '10' }]}
-            >
-              <MaterialCommunityIcons name="pencil-outline" size={20} color={colors.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={() => handleDeletePatient(item.id, item.name)}
-              style={[styles.deleteButton, { backgroundColor: colors.danger + '10' }]}
-            >
-              <MaterialCommunityIcons name="trash-can-outline" size={20} color={colors.danger} />
-            </TouchableOpacity>
           </View>
         </Card>
       </TouchableOpacity>
@@ -83,14 +49,6 @@ export const Patients = ({ navigation }: any) => {
         title="Pacientes" 
         showBack 
         onBack={() => navigation.goBack()}
-        rightElement={
-          <TouchableOpacity 
-            onPress={handleNewPatient} 
-            style={styles.addButton}
-          >
-            <MaterialCommunityIcons name="plus-circle-outline" size={26} color={colors.text} />
-          </TouchableOpacity>
-        }
       />
 
       <View style={[styles.searchWrapper, { paddingHorizontal: spacing.lg }]}>
@@ -123,60 +81,6 @@ export const Patients = ({ navigation }: any) => {
         }
       />
 
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setIsModalVisible(false)}
-      >
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
-        >
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>{editingPatient ? 'Editar paciente' : 'Novo Paciente'}</Text>
-              <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.closeBtn}>
-                <MaterialCommunityIcons name="close" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-            
-            <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
-              Importe os dados do paciente vinculando o ID da coleira inteligente PetCare 360.
-            </Text>
-            
-            <Input
-              label="NOME DO PET"
-              placeholder="Nome"
-              value={patientName}
-              onChangeText={setPatientName}
-              autoCapitalize="words"
-            />
-            <Input
-              label="ID DA COLEIRA"
-              placeholder="Ex: COL-12345"
-              value={collarId}
-              onChangeText={setCollarId}
-              autoCapitalize="characters"
-              icon={<MaterialCommunityIcons name="qrcode-scan" size={20} color={colors.primary} />}
-            />
-            <Input label="RAÇA" placeholder="Ex: Golden Retriever" value={breed} onChangeText={setBreed} />
-            <Input label="ESPÉCIE" placeholder="Ex: Cão" value={species} onChangeText={setSpecies} />
-            <View style={styles.formRow}>
-              <Input label="IDADE" placeholder="Anos" value={age} onChangeText={setAge} keyboardType="numeric" containerStyle={styles.formField} />
-              <Input label="PESO (KG)" placeholder="Peso" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" containerStyle={styles.formField} />
-            </View>
-
-            <Button 
-              title={editingPatient ? 'Salvar alterações' : 'Vincular Dispositivo'} 
-              onPress={handleAddPatient}
-              loading={isLoading}
-              style={{ marginTop: 8 }}
-            />
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </View>
   );
 };

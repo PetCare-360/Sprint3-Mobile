@@ -47,7 +47,7 @@ O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade
 ### Configuração (Variáveis de Ambiente)
 O aplicativo consome a API Spring Boot da Sprint 3. Crie um arquivo `.env` na raiz do projeto e configure:
 ```env
-EXPO_PUBLIC_API_BASE_URL=http://localhost:8080
+EXPO_PUBLIC_API_BASE_URL=https://sprint3-java-sempaginahtml.onrender.com/
 ```
 
 ### Instalação

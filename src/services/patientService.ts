@@ -1,5 +1,7 @@
 import { httpClient } from './httpClient';
 import { ActivitySummary, Pet, PetApiResponse, PetRequest, PetLocation, SensorData } from '../types/pet';
+import { UserResponse } from '../types/auth';
+import axios from 'axios';
 
 const activityLabel = (value: number): Pet['activity'] => {
   if (value < 34) return 'Baixa';
@@ -12,6 +14,13 @@ const statusLabel = (value: string): Pet['status'] => {
   if (normalized.includes('critical')) return 'critical';
   if (normalized.includes('warning')) return 'warning';
   return 'stable';
+};
+
+const normalizeSpecies = (value: string): 'DOG' | 'CAT' | 'OTHER' => {
+  const normalized = value.trim().toLowerCase();
+  if (['dog', 'cão', 'cao', 'cachorro'].includes(normalized)) return 'DOG';
+  if (['cat', 'gato'].includes(normalized)) return 'CAT';
+  return 'OTHER';
 };
 
 const toPet = (pet: PetApiResponse): Pet => ({
@@ -31,6 +40,22 @@ const toPet = (pet: PetApiResponse): Pet => ({
 });
 
 export const PatientService = {
+  async listVeterinarians(): Promise<UserResponse[]> {
+    try {
+      const { data } = await httpClient.get<UserResponse[]>('/veterinarians');
+      return data;
+    } catch (error) {
+      const message = axios.isAxiosError(error) && typeof error.response?.data?.message === 'string'
+        ? error.response.data.message
+        : 'Não foi possível carregar os veterinários.';
+      throw new Error(message);
+    }
+  },
+
+  async linkVeterinarian(petId: number, veterinarianId: number): Promise<void> {
+    await httpClient.post('/veterinarians/link', { petId, veterinarianId });
+  },
+
   async getPatients(): Promise<Pet[]> {
     const { data } = await httpClient.get<PetApiResponse[]>('/pets/patients');
     return data.map(toPet);
@@ -147,7 +172,7 @@ export const PatientService = {
       age: values.age,
       weight: values.weight,
       breed: values.breed.trim(),
-      species: values.species.trim(),
+      species: normalizeSpecies(values.species),
       deviceId: values.deviceId.trim(),
       initialSensorData: {
         timestamp: new Date().toISOString(),

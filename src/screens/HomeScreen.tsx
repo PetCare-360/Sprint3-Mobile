@@ -108,7 +108,7 @@ export const HomeScreen = () => {
         <View style={styles.vitalsGrid}>
           <InfoCard 
             label="Temperatura" 
-            value={status ? status.temperature.toFixed(1) : '-'} 
+            value={typeof status?.temperature === 'number' ? status.temperature.toFixed(1) : '-'} 
             unit="°C"
             icon="thermometer"
             iconColor={colors.danger} 
@@ -153,7 +153,9 @@ export const HomeScreen = () => {
             </View>
             <View style={styles.locationInfo}>
               <Text style={[styles.locationTitle, { color: colors.text, fontSize: typography.sizes.md }]}>
-                {location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : 'Sem localização'}
+                {location && typeof location.latitude === 'number' && typeof location.longitude === 'number'
+                  ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`
+                  : 'Sem localização'}
               </Text>
               <Text style={[styles.locationSubtitle, { color: colors.textSecondary, fontSize: typography.sizes.sm }]}>
                 {location ? `Atualizado em ${new Date(location.timestamp).toLocaleString()}` : 'Nenhuma leitura disponível'}

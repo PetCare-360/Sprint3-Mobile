@@ -11,16 +11,22 @@ export function useHomeData() {
     queryKey: ['pet-health', firstPet?.id],
     queryFn: () => PatientService.getHealthStatus(firstPet!.id),
     enabled: Boolean(firstPet),
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
   });
   const { data: location } = useQuery({
     queryKey: ['pet-location', firstPet?.id],
     queryFn: () => PatientService.getLocation(firstPet!.id),
     enabled: Boolean(firstPet),
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
   });
   const { data: activitySummary } = useQuery({
     queryKey: ['pet-activity-summary', firstPet?.id],
     queryFn: () => PatientService.getActivitySummary(firstPet!.id),
     enabled: Boolean(firstPet),
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
   });
 
   return {

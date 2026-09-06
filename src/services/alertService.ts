@@ -23,7 +23,7 @@ export const AlertService = {
   getVitalsAlerts(vitals: VitalSigns): Alert[] {
     const alerts: Alert[] = [];
 
-    if (vitals.temperature > 39) {
+    if (typeof vitals.temperature === 'number' && vitals.temperature > 39) {
       alerts.push({
         id: 'temp_high',
         type: 'temperature',

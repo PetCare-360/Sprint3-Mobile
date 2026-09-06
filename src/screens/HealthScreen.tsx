@@ -64,7 +64,7 @@ export const HealthScreen = () => {
           <View style={styles.vitalRow}>
             <View style={styles.vitalItem}>
               <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>ATUAL</Text>
-              <Text style={[styles.vitalValue, { color: colors.text }]}>{status ? status.temperature.toFixed(1) : '-'} <Text style={styles.vitalUnit}>°C</Text></Text>
+              <Text style={[styles.vitalValue, { color: colors.text }]}>{typeof status?.temperature === 'number' ? status.temperature.toFixed(1) : '-'} <Text style={styles.vitalUnit}>°C</Text></Text>
             </View>
             <View style={[styles.dividerVertical, { backgroundColor: colors.divider }]} />
             <View style={styles.vitalItem}>

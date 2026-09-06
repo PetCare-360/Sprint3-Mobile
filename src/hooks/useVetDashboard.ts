@@ -8,6 +8,8 @@ export function useVetDashboard() {
   const { data: patients = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['patients', 'health'],
     queryFn: PatientService.getPatientsWithHealth,
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
   });
 
   const processedPatients = useMemo(() => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Switch} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Switch, TouchableOpacity} from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useProfileForm } from '../hooks/useProfileForm';
@@ -15,13 +15,20 @@ export const ProfileScreen = () => {
     breed,
     age,
     weight,
+    collarId,
     ownerName,
     isLoading,
+    hasPet,
     setPetName,
     setBreed,
     setAge,
     setWeight,
+    setCollarId,
     handleSave,
+    veterinarians,
+    veterinariansError,
+    refetchVeterinarians,
+    linkVeterinarian,
     handleLogout,
   } = useProfileForm();
 
@@ -68,16 +75,55 @@ export const ProfileScreen = () => {
               <Icon name="account-outline" size={20} color={colors.primary} />
               <Text style={[styles.readOnlyValue, { color: colors.text }]}>{ownerName}</Text>
             </View>
+
             <Text style={[styles.readOnlyHint, { color: colors.textSecondary }]}>
               O nome do tutor é gerenciado pela conta autenticada.
             </Text>
           </Card>
         </View>
 
+        {hasPet && (
+          <View style={styles.sectionContainer}>
+            <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: spacing.md }]}>
+              Vincular veterinário
+            </Text>
+            <Text style={[styles.registrationHint, { color: colors.textSecondary }]}>
+              Selecione um veterinário para acompanhar este pet.
+            </Text>
+            {veterinariansError && (
+              <TouchableOpacity onPress={() => refetchVeterinarians()} style={styles.retryButton}>
+                <Text style={{ color: colors.danger }}>
+                  Não foi possível carregar os veterinários. Tentar novamente
+                </Text>
+              </TouchableOpacity>
+            )}
+            {!veterinariansError && veterinarians.length === 0 && (
+              <Text style={[styles.registrationHint, { color: colors.textSecondary }]}>
+                Nenhum veterinário disponível. Verifique se a conta foi criada como Veterinário.
+              </Text>
+            )}
+            {veterinarians.map(veterinarian => (
+              <TouchableOpacity
+                key={veterinarian.id}
+                onPress={() => linkVeterinarian(veterinarian.id)}
+                style={[styles.veterinarianOption, { borderColor: colors.divider, backgroundColor: colors.card }]}
+              >
+                <Text style={[styles.veterinarianName, { color: colors.text }]}>{veterinarian.name}</Text>
+                <Text style={{ color: colors.textSecondary }}>{veterinarian.email}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: spacing.md }]}>
             Informações do Pet
           </Text>
+          {!hasPet && (
+            <Text style={[styles.registrationHint, { color: colors.textSecondary }]}>
+              Cadastre seu pet para acompanhar a saúde e editar essas informações depois.
+            </Text>
+          )}
           <Input
             label="Nome do Pet"
             value={petName}
@@ -89,6 +135,14 @@ export const ProfileScreen = () => {
             value={breed}
             onChangeText={setBreed}
             icon={<Icon name="shape-outline" size={20} color={colors.primary} />}
+          />
+          <Input
+            label="Identificador da Coleira"
+            value={collarId}
+            onChangeText={setCollarId}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            icon={<Icon name="watch-variant" size={20} color={colors.primary} />}
           />
           <View style={styles.rowInputs}>
             <Input
@@ -131,7 +185,7 @@ export const ProfileScreen = () => {
         </View>
 
         <Button 
-          title="Salvar Alterações" 
+          title={hasPet ? 'Salvar Alterações' : 'Cadastrar Pet'} 
           onPress={handleSave}
           style={{ marginTop: spacing.lg }}
         />
@@ -218,6 +272,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: -0.2,
+  },
+  registrationHint: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  veterinarianOption: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+  veterinarianName: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  retryButton: {
+    paddingVertical: 10,
+    marginBottom: 10,
   },
   rowInputs: {
     flexDirection: 'row',

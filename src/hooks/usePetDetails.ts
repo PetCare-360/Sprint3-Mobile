@@ -18,14 +18,20 @@ export function usePetDetails(petId: string) {
   const { data: health, isLoading: isHealthLoading, isError: healthError } = useQuery({
     queryKey: ['pet-health', petId],
     queryFn: () => PatientService.getHealthStatus(petId),
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
   });
   const { data: monitoring, isLoading: isMonitoringLoading, isError: monitoringError } = useQuery({
     queryKey: ['pet-monitoring', petId],
     queryFn: () => PatientService.getMonitoring(petId),
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
   });
   const { data: apiAlerts, isLoading: isAlertsLoading, isError: alertsError } = useQuery({
     queryKey: ['pet-alerts', petId],
     queryFn: () => PatientService.getAlerts(petId),
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
   });
 
   const mergedPet: Pet | null = pet && health ? { ...pet, ...health } : pet ?? null;
@@ -41,7 +47,7 @@ export function usePetDetails(petId: string) {
     id: String(reading.id),
     date: new Date(reading.timestamp).toLocaleString(),
     type: 'monitoramento',
-    description: `${reading.temperature.toFixed(1)}°C, ${reading.heartRate} bpm, atividade ${reading.activityLevel}% e bateria ${reading.battery}%.`,
+    description: `${typeof reading.temperature === 'number' ? reading.temperature.toFixed(1) : '-'}°C, ${reading.heartRate ?? '-'} bpm, atividade ${reading.activityLevel ?? '-'}% e bateria ${reading.battery ?? '-'}%.`,
     vet: `Status: ${reading.status}`,
   }));
 
