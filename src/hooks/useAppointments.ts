@@ -9,21 +9,36 @@ export function useAppointments() {
   const [veterinarianId, setVeterinarianId] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [reason, setReason] = useState('');
+  const [editingId, setEditingId] = useState<number | null>(null);
   const { data: appointments = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['appointments'],
     queryFn: appointmentService.list,
   });
+  const resetForm = () => {
+    setPetId('');
+    setVeterinarianId('');
+    setScheduledAt('');
+    setReason('');
+    setEditingId(null);
+  };
   const mutation = useMutation({
     mutationFn: appointmentService.create,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      setPetId('');
-      setVeterinarianId('');
-      setScheduledAt('');
-      setReason('');
+      resetForm();
       Alert.alert('Sucesso', 'Consulta solicitada.');
     },
     onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível solicitar a consulta.'),
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, request }: { id: number; request: Parameters<typeof appointmentService.update>[1] }) =>
+      appointmentService.update(id, request),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      resetForm();
+      Alert.alert('Sucesso', 'Consulta atualizada.');
+    },
+    onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível atualizar a consulta.'),
   });
   const finishMutation = useMutation({
     mutationFn: appointmentService.finish,
@@ -44,13 +59,28 @@ export function useAppointments() {
       Alert.alert('Erro', 'Preencha pet, veterinário, data e motivo.');
       return;
     }
-    mutation.mutate({
+    const request = {
       petId: parsedPetId,
       veterinarianId: parsedVeterinarianId,
       scheduledAt: parsedDate.toISOString(),
       reason: reason.trim(),
-    });
+    };
+    if (editingId !== null) {
+      updateMutation.mutate({ id: editingId, request });
+    } else {
+      mutation.mutate(request);
+    }
   };
+
+  const startEdit = (appointment: { id: number; scheduledAt: string; reason: string }) => {
+    setEditingId(appointment.id);
+    setPetId('');
+    setVeterinarianId('');
+    setScheduledAt(appointment.scheduledAt);
+    setReason(appointment.reason);
+  };
+
+  const cancelEdit = () => resetForm();
 
   return {
     appointments,
@@ -58,11 +88,14 @@ export function useAppointments() {
     veterinarianId,
     scheduledAt,
     reason,
+    editingId,
     setPetId,
     setVeterinarianId,
     setScheduledAt,
     setReason,
     create,
+    startEdit,
+    cancelEdit,
     finish: (id: number) => finishMutation.mutate(id),
     remove: (id: number, description: string) => {
       Alert.alert('Excluir consulta', `Deseja excluir a consulta de ${description}?`, [
@@ -72,6 +105,6 @@ export function useAppointments() {
     },
     isError,
     refetch,
-    isLoading: isLoading || mutation.isPending || finishMutation.isPending || removeMutation.isPending,
+    isLoading: isLoading || mutation.isPending || updateMutation.isPending || finishMutation.isPending || removeMutation.isPending,
   };
 }

@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    borderRadius: 16,
+    borderRadius: 22,
     height: 52,
     borderWidth: 1,
     ...Platform.select({
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: 12,
     marginTop: 8,
   },
   collarId: {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   deleteButton: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 12,

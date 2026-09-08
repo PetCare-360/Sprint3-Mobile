@@ -23,8 +23,8 @@ export const InfoCard = ({ label, value, unit, icon, iconColor }: InfoCardProps)
         <View style={[
           styles.iconContainer, 
           { 
-            backgroundColor: isDark ? color + '20' : color + '10',
-            borderRadius: radius.lg
+            backgroundColor: isDark ? color + '25' : color + '14',
+            borderRadius: radius.round
           }
         ]}>
           {icon && <MaterialCommunityIcons name={icon as any} size={22} color={color} />}

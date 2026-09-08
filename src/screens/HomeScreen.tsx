@@ -145,8 +145,8 @@ export const HomeScreen = () => {
             <View style={[
               styles.locationIcon, 
               { 
-                backgroundColor: isDark ? colors.primary + '20' : colors.primary + '10', 
-                borderRadius: radius.lg 
+                backgroundColor: isDark ? colors.primary + '25' : colors.primary + '14', 
+                borderRadius: radius.round 
               }
             ]}>
               <MaterialCommunityIcons name="map-marker" size={24} color={colors.primary} />

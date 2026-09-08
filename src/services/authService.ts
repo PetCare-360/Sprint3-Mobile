@@ -63,27 +63,32 @@ export const authService = {
   },
 
   /**
-   * A API ainda não expõe /auth/logout. Como a sessão vive num cookie
-   * HttpOnly, o "logout" do lado do app é local: limpamos o usuário
-   * armazenado. Se um endpoint de logout for adicionado, chamar aqui.
+   * Chama o endpoint real de logout, que invalida a sessão/cookie no
+   * servidor. Se a chamada falhar (ex.: sessão já expirada, sem internet),
+   * o logout local segue em frente mesmo assim — o usuário não pode ficar
+   * preso numa tela protegida por causa de uma falha de rede.
    */
   async signOut(): Promise<void> {
-    return Promise.resolve();
+    try {
+      await httpClient.post('/auth/logout');
+    } catch (error) {
+      console.warn('[authService] Falha ao encerrar sessão no servidor.', error);
+    }
   },
 
   /**
-   * Não existe /auth/me na API ainda. Para saber se o cookie de sessão
-   * salvo ainda é válido quando o app reabre, batemos numa rota protegida
-   * leve e tratamos 401/403 como sessão expirada.
-   * - Trocar por GET /auth/me assim que existir.
+   * Usa o endpoint dedicado de sessão (não depende mais de uma rota de
+   * negócio como proxy). Devolve o usuário atualizado quando a sessão
+   * salva ainda é válida, ou null quando expirou/foi revogada — assim o
+   * app pode ressincronizar nome/e-mail/role com o que está no servidor.
    */
-  async validateSession(): Promise<boolean> {
+  async validateSession(): Promise<UserResponse | null> {
     try {
-      await httpClient.get('/pets/all');
-      return true;
+      const { data } = await httpClient.get<UserResponse>('/auth/me');
+      return data;
     } catch (error) {
       if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
-        return false;
+        return null;
       }
       throw error;
     }

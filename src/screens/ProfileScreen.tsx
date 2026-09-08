@@ -279,8 +279,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   veterinarianOption: {
-    borderWidth: 1,
-    borderRadius: 12,
+    borderWidth: 1.5,
+    borderRadius: 18,
     padding: 14,
     marginBottom: 10,
   },

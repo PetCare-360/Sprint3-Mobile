@@ -33,6 +33,10 @@ export const SignIn = ({ navigation }: any) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.heroSection, { backgroundColor: topBgColor }]}>
+          <View pointerEvents="none" style={[styles.heroBlobLarge, { backgroundColor: 'rgba(255,255,255,0.10)' }]} />
+          <View pointerEvents="none" style={[styles.heroBlobSmall, { backgroundColor: colors.accent, opacity: 0.35 }]} />
+          <View pointerEvents="none" style={[styles.heroBlobTeal, { backgroundColor: colors.secondary, opacity: 0.3 }]} />
+
           <SafeAreaView />
 
           <View style={styles.themeToggleContainer}>
@@ -135,6 +139,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 40,
+    overflow: 'hidden',
+  },
+  heroBlobLarge: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    top: -120,
+    right: -70,
+  },
+  heroBlobSmall: {
+    position: 'absolute',
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    bottom: 30,
+    left: -30,
+  },
+  heroBlobTeal: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    top: 60,
+    left: 40,
   },
   heroContent: {
     alignItems: 'center',

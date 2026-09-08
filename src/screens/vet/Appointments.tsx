@@ -26,12 +26,26 @@ export const Appointments = ({ navigation }: any) => {
         contentContainerStyle={{ padding: spacing.lg }}
         ListHeaderComponent={
           <Card padding="md" style={styles.form}>
-            <Text style={[styles.title, { color: colors.text }]}>Solicitar consulta</Text>
+            <Text style={[styles.title, { color: colors.text }]}>
+              {appointments.editingId !== null ? 'Editar consulta' : 'Solicitar consulta'}
+            </Text>
+            {appointments.editingId !== null && (
+              <Text style={{ color: colors.textSecondary, marginBottom: 12, fontSize: 13 }}>
+                Data e motivo já vieram preenchidos. Confirme novamente o ID do pet e do veterinário para salvar.
+              </Text>
+            )}
             <Input label="ID do pet" value={appointments.petId} onChangeText={appointments.setPetId} keyboardType="numeric" />
             <Input label="ID do veterinário" value={appointments.veterinarianId} onChangeText={appointments.setVeterinarianId} keyboardType="numeric" />
             <Input label="Data e hora (ISO)" placeholder="2026-12-20T14:00:00-03:00" value={appointments.scheduledAt} onChangeText={appointments.setScheduledAt} />
             <Input label="Motivo" value={appointments.reason} onChangeText={appointments.setReason} />
-            <Button title="Solicitar" onPress={appointments.create} loading={appointments.isLoading} />
+            <Button
+              title={appointments.editingId !== null ? 'Salvar alterações' : 'Solicitar'}
+              onPress={appointments.create}
+              loading={appointments.isLoading}
+            />
+            {appointments.editingId !== null && (
+              <Button title="Cancelar edição" onPress={appointments.cancelEdit} variant="ghost" style={{ marginTop: 8 }} />
+            )}
           </Card>
         }
         renderItem={({ item }) => (
@@ -39,10 +53,13 @@ export const Appointments = ({ navigation }: any) => {
             <Text style={[styles.title, { color: colors.text }]}>{item.petName}</Text>
             <Text style={{ color: colors.textSecondary }}>{new Date(item.scheduledAt).toLocaleString()}</Text>
             <Text style={{ color: colors.textSecondary }}>{item.reason} - {item.status}</Text>
-            {item.status !== 'FINISHED' && (
-              <Button title="Finalizar" onPress={() => appointments.finish(item.id)} loading={appointments.isLoading} />
+            {item.status !== 'FINISHED' && item.status !== 'CANCELLED' && (
+              <>
+                <Button title="Finalizar" onPress={() => appointments.finish(item.id)} loading={appointments.isLoading} />
+                <Button title="Editar" onPress={() => appointments.startEdit(item)} variant="secondary" loading={appointments.isLoading} style={{ marginTop: 8 }} />
+              </>
             )}
-            <Button title="Excluir" onPress={() => appointments.remove(item.id, item.petName)} loading={appointments.isLoading} variant="outline" />
+            <Button title="Excluir" onPress={() => appointments.remove(item.id, item.petName)} loading={appointments.isLoading} variant="outline" style={{ marginTop: 8 }} />
           </Card>
         )}
         ListEmptyComponent={appointments.isLoading ? <ActivityIndicator color={colors.primary} /> : <Text style={{ color: colors.textSecondary }}>Nenhuma consulta encontrada.</Text>}

@@ -35,8 +35,11 @@ export const SignUp = ({ navigation }: any) => {
         <SafeAreaView />
 
         <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[styles.backButton, { backgroundColor: colors.primary + '14' }]}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={22} color={colors.primary} />
           </TouchableOpacity>
 
           <Text style={[styles.title, { color: colors.text }]}>Criar Conta</Text>
@@ -91,8 +94,10 @@ export const SignUp = ({ navigation }: any) => {
                 ]}
                 onPress={() => setRole('ROLE_CLIENTE')}
               >
-                <MaterialCommunityIcons name="account-heart-outline" size={22} color={role === 'ROLE_CLIENTE' ? colors.primary : colors.textSecondary} />
-                <Text style={{ color: role === 'ROLE_CLIENTE' ? colors.primary : colors.text }}>Tutor</Text>
+                <View style={[styles.roleIconBadge, { backgroundColor: (role === 'ROLE_CLIENTE' ? colors.primary : colors.textSecondary) + '18' }]}>
+                  <MaterialCommunityIcons name="account-heart-outline" size={20} color={role === 'ROLE_CLIENTE' ? colors.primary : colors.textSecondary} />
+                </View>
+                <Text style={{ color: role === 'ROLE_CLIENTE' ? colors.primary : colors.text, fontWeight: role === 'ROLE_CLIENTE' ? '700' : '500' }}>Tutor</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -102,8 +107,10 @@ export const SignUp = ({ navigation }: any) => {
                 ]}
                 onPress={() => setRole('ROLE_VETERINARIO')}
               >
-                <MaterialCommunityIcons name="stethoscope" size={22} color={role === 'ROLE_VETERINARIO' ? colors.primary : colors.textSecondary} />
-                <Text style={{ color: role === 'ROLE_VETERINARIO' ? colors.primary : colors.text }}>Veterinário</Text>
+                <View style={[styles.roleIconBadge, { backgroundColor: (role === 'ROLE_VETERINARIO' ? colors.primary : colors.textSecondary) + '18' }]}>
+                  <MaterialCommunityIcons name="stethoscope" size={20} color={role === 'ROLE_VETERINARIO' ? colors.primary : colors.textSecondary} />
+                </View>
+                <Text style={{ color: role === 'ROLE_VETERINARIO' ? colors.primary : colors.text, fontWeight: role === 'ROLE_VETERINARIO' ? '700' : '500' }}>Veterinário</Text>
               </TouchableOpacity>
             </View>
 
@@ -140,8 +147,10 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
+    borderRadius: 9999,
     justifyContent: 'center',
-    marginBottom: 8,
+    alignItems: 'center',
+    marginBottom: 12,
   },
   title: {
     fontSize: 26,
@@ -171,11 +180,19 @@ const styles = StyleSheet.create({
   },
   roleOption: {
     alignItems: 'center',
-    borderRadius: 14,
-    borderWidth: 1.5,
+    borderRadius: 20,
+    borderWidth: 2,
     flex: 1,
     gap: 6,
-    paddingVertical: 14,
+    paddingVertical: 16,
+  },
+  roleIconBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 9999,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 2,
   },
   button: {
     width: '100%',

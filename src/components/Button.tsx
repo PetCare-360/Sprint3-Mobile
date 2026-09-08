@@ -55,18 +55,16 @@ export const Button = ({
       case 'secondary':
         return {
           container: { 
-            backgroundColor: colors.surface, 
-            borderWidth: 1, 
-            borderColor: colors.border,
-            ...shadows.sm,
+            backgroundColor: colors.secondary,
+            ...shadows.secondary,
           },
-          text: { color: colors.text },
+          text: { color: colors.white },
         };
       case 'outline':
         return {
           container: { 
             backgroundColor: 'transparent', 
-            borderWidth: 1.5, 
+            borderWidth: 2, 
             borderColor: colors.primary 
           },
           text: { color: colors.primary },
@@ -119,6 +117,9 @@ export const Button = ({
         activeOpacity={0.8}
         {...rest}
       >
+        {(variant === 'primary' || variant === 'secondary') && !disabled && (
+          <View pointerEvents="none" style={styles.gloss} />
+        )}
         {loading ? (
           <ActivityIndicator color={variantStyles.text.color} size="small" />
         ) : (
@@ -147,12 +148,21 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 56,
+    minHeight: 58,
+    overflow: 'hidden',
     ...Platform.select({
       web: {
         transition: 'all 0.2s ease-in-out',
       }
     })
+  },
+  gloss: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '52%',
+    backgroundColor: 'rgba(255,255,255,0.16)',
   },
   content: {
     flexDirection: 'row',

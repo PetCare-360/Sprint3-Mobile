@@ -11,9 +11,9 @@ export const shadows = {
   sm: {
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#3A2A1E',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.04,
+        shadowOpacity: 0.05,
         shadowRadius: 12,
       },
       android: {
@@ -24,9 +24,9 @@ export const shadows = {
   md: {
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#3A2A1E',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.08,
+        shadowOpacity: 0.09,
         shadowRadius: 24,
       },
       android: {
@@ -37,9 +37,9 @@ export const shadows = {
   lg: {
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#3A2A1E',
         shadowOffset: { width: 0, height: 16 },
-        shadowOpacity: 0.12,
+        shadowOpacity: 0.14,
         shadowRadius: 40,
       },
       android: {
@@ -50,14 +50,28 @@ export const shadows = {
   primary: {
     ...Platform.select({
       ios: {
-        shadowColor: '#6366F1',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
+        shadowColor: '#FF6B4A',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.28,
         shadowRadius: 20,
       },
       android: {
         elevation: 8,
-        shadowColor: '#6366F1',
+        shadowColor: '#FF6B4A',
+      },
+    }),
+  },
+  secondary: {
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14B8A6',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.24,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 8,
+        shadowColor: '#14B8A6',
       },
     }),
   },

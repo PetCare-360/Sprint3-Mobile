@@ -43,8 +43,8 @@ export const NotificationItem = ({ type, title, message, time, read = false }: N
         <View style={[
           styles.iconContainer, 
           { 
-            backgroundColor: isDark ? config.color + '20' : config.color + '10',
-            borderRadius: radius.lg
+            backgroundColor: isDark ? config.color + '25' : config.color + '14',
+            borderRadius: radius.round
           }
         ]}>
           <MaterialCommunityIcons name={config.name as any} size={24} color={config.color} />

@@ -39,9 +39,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        const stillValid = await authService.validateSession();
-        if (stillValid) {
-          setUser(storageUser);
+        const apiUser = await authService.validateSession();
+        if (apiUser) {
+          const freshUser: User = {
+            id: apiUser.id,
+            name: apiUser.name,
+            email: apiUser.email,
+            role: apiUser.role,
+          };
+          await userStorage.saveUser(freshUser);
+          setUser(freshUser);
         } else {
           await userStorage.removeUser();
         }
