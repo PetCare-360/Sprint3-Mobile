@@ -1,4 +1,5 @@
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
@@ -8,7 +9,7 @@ import { Header } from '../../components/Header';
 
 export const Settings = ({ navigation }: any) => {
   const { colors, spacing, typography, radius, toggleTheme, isDark } = useTheme();
-  const { handleSignOut } = useSettingsScreen();
+  const { handleSignOut, isSigningOut } = useSettingsScreen();
 
   const SettingItem = ({ icon, label, value, onPress, isSwitch, switchValue, onSwitchChange }: any) => (
     <TouchableOpacity 
@@ -57,9 +58,16 @@ export const Settings = ({ navigation }: any) => {
         <TouchableOpacity 
           style={[styles.logoutButton, { backgroundColor: colors.danger + '10', borderRadius: radius.md }]} 
           onPress={handleSignOut}
-        >
-          <MaterialCommunityIcons name="logout" size={20} color={colors.danger} />
-          <Text style={[styles.logoutText, { color: colors.danger, fontSize: typography.sizes.md }]}>Sair da Conta</Text>
+          disabled={isSigningOut}
+          >
+          {isSigningOut ? (
+            <ActivityIndicator size="small" color={colors.danger} />
+          ) : (
+            <>
+              <MaterialCommunityIcons name="logout" size={20} color={colors.danger} />
+              <Text style={[styles.logoutText, { color: colors.danger, fontSize: typography.sizes.md }]}>Sair da Conta</Text>
+            </>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </View>
