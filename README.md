@@ -1,145 +1,217 @@
 # PetCare 360
-![Expo](https://img.shields.io/badge/Expo-5D5FEF?style=for-the-badge&logo=expo&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-5D5FEF?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![React Native](https://img.shields.io/badge/React_Native-5D5FEF?style=for-the-badge&logo=react&logoColor=white)
-![Axios](https://img.shields.io/badge/Axios-5D5FEF?style=for-the-badge&logo=axios&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5D5FEF?style=for-the-badge&logo=typescript&logoColor=white)
 
-O **PetCare 360** é uma solução mobile robusta projetada para o monitoramento inteligente de saúde e atividade de animais de estimação. A plataforma estabelece uma ponte direta entre tutores e médicos veterinários, permitindo o acompanhamento de sinais vitais em tempo real e facilitando a tomada de decisão clínica baseada em dados consolidados.
+Aplicativo mobile do **PetCare 360**, desenvolvido com React Native + Expo para conectar tutores e veterinários e permitir acompanhamento de pets, saúde, localização, alertas e consultas.
 
-## Funcionalidades Principais
+## 🎯 Problema e solução
 
-### Módulo do Tutor
-- **Dashboard de Saúde:** Visualização em tempo real de temperatura, nível de atividade e batimentos cardíacos.
-    - *Visualização em tempo real de temperatura* - Dados da última leitura retornada pela API
-- **Alertas Inteligentes:** Notificações instantâneas sobre anomalias nos dados vitais do pet.
-- **Perfil do Pet:** Centralização de informações cadastrais e histórico básico.
-- **Localização:** Integração com mapas para visualização da última localização do pet.
+O projeto busca centralizar informações relevantes do pet em um único aplicativo. O tutor acompanha dados de saúde, localização e alertas, enquanto o veterinário possui recursos para gestão de pacientes, prontuário/monitoramento e consultas.
 
-### Módulo do Veterinário
-- **Triagem Digital:** Dashboard com sistema de priorização de pacientes baseado em risco clínico.
-- **Gestão de Pacientes:** Lista completa de animais sob acompanhamento.
-    - **Vincular nova coleira:** Coleta o ID da coleira e adiciona o pet no dashboard.
-- **Prontuário Detalhado:** Acesso ao histórico completo de dados vitais e métricas de comportamento.
-    - **Evolução Clínica:** Linha do tempo da evolução clínica.
-- **Monitoramento Remoto:** Sistema de alertas para pacientes críticos.
+A aplicação mobile consome a API real do projeto e não depende de dados fixos para as funcionalidades principais.
 
+## ✨ Funcionalidades
 
-## Arquitetura e Tecnologias
+### Tutor
+- Login e cadastro.
+- Persistência e validação de sessão.
+- Dashboard do pet.
+- Indicadores de saúde retornados pela API.
+- Localização do pet em mapa.
+- Alertas e atualização periódica.
+- Perfil e configurações.
 
-O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade e uma excelente experiência de usuário.
+### Veterinário
+- Dashboard clínico.
+- Listagem, cadastro, edição e remoção de pacientes.
+- Visualização detalhada do pet.
+- Monitoramento de saúde e atividade.
+- Gestão de consultas: criar, listar, editar, finalizar e excluir.
+- Seleção de pets e veterinários pelos dados retornados pela API.
 
-- **Core:** React Native com Expo.
-- **Linguagem:** TypeScript.
-- **Navegação:** React Navigation (Stack e Bottom Tabs).
-- **Estado e Consumo:** Axios para HTTP e TanStack Query para cache, loading, mutations e invalidação de dados.
-- **Persistência:** AsyncStorage para armazenamento local de preferências e dados de sessão.
-- **Geolocalização:** React Native Maps.
+## 🧱 Arquitetura
 
+A aplicação segue separação entre interface, regras de consumo de dados e integração HTTP:
 
-## Como Rodar o Projeto
+```text
+src/
+├── components/     # Componentes visuais reutilizáveis
+├── context/        # Estado global de autenticação
+├── hooks/          # Regras de tela e hooks do TanStack Query
+├── navigation/     # React Navigation e proteção dos fluxos
+├── screens/        # Telas da aplicação
+├── services/       # Comunicação HTTP com a API via Axios
+├── storage/        # Persistência local da sessão
+├── theme/          # Design system e tokens visuais
+└── types/          # Tipos TypeScript
+```
+
+### Fluxo de dados
+
+```text
+Screen
+  ↓
+Custom Hook
+  ↓
+Service
+  ↓
+Axios / API
+  ↓
+TanStack Query
+  ↓
+Screen atualizada
+```
+
+As telas não utilizam `fetch`. As operações HTTP são realizadas pelos services com Axios e as queries/mutations ficam encapsuladas nos hooks.
+
+## 🛠️ Tecnologias
+
+- React Native 0.86.3
+- Expo 57
+- TypeScript
+- React Navigation
+- Axios
+- TanStack Query v5
+- AsyncStorage
+- React Native Maps
+
+## 🚀 Como executar
 
 ### Pré-requisitos
-- Node.js instalado.
-- Gerenciador de pacotes (npm ou yarn).
-- Aplicativo **Expo Go** instalado no dispositivo móvel ou emulador configurado.
 
-### Configuração (Variáveis de Ambiente)
-O aplicativo consome a API Spring Boot da Sprint 3. Crie um arquivo `.env` na raiz do projeto e configure:
+- Node.js
+- npm
+- Expo Go no dispositivo ou emulador Android/iOS configurado
+
+### Instalação
+
+```bash
+npm install
+```
+
+### Variável de ambiente
+
+Configure a URL da API no arquivo `.env`:
+
 ```env
 EXPO_PUBLIC_API_BASE_URL=https://sprint3-java-sempaginahtml.onrender.com/
 ```
 
-### Instalação
-1. Clone o repositório:
-   ```bash
-    git clone https://github.com/PetCare-360/Sprint3-Mobile
-    cd Sprint3-Mobile
-    ```
-2. Instale as dependências:
-   ```bash
-   npm install
-   ```
+Não versione credenciais ou informações sensíveis no repositório.
 
 ### Execução
-Inicie o servidor do Expo utilizando um dos comandos abaixo:
-- `npm start`: Inicia o Expo Go (QR Code).
-- `npm run android`: Inicia no emulador Android.
-- `npm run web`: Inicia a versão web.
-
-### Autenticação
-Crie um usuário pela tela de cadastro e entre com as credenciais cadastradas na API. O perfil retornado pelo backend define o fluxo de tutor ou veterinário, e a sessão é restaurada ao reabrir o aplicativo.
-
-### Funcionalidades integradas
-- Pets: listagem, cadastro de coleira, edição e remoção via `/pets`.
-- Consultas: solicitação, listagem, finalização e remoção via `/appointments`.
-- Dashboard e monitoramento: dados de saúde consultados em `/pets/{id}/health-status`.
-
-
-## Principais Dependências
-
-O projeto depende das seguintes bibliotecas principais:
-
-- **expo (~54.0.33):** Plataforma para desenvolvimento React Native.
-- **@react-navigation/native & stack/bottom-tabs:** Sistema de navegação completo.
-- **axios:** Cliente para chamadas HTTP da API Java.
-- **@tanstack/react-query:** Gerenciamento das consultas e mutações da API.
-- **react-native-maps:** Componente de mapa para localização de serviços.
-- **@react-native-async-storage/async-storage:** Armazenamento persistente de dados.
-- **@expo/vector-icons:** Biblioteca de ícones (MaterialCommunityIcons).
-- **react-native-safe-area-context & screens:** Dependências fundamentais para navegação segura e performática.
-
-## Design System
-
-O aplicativo conta com uma identidade visual própria e escalável, focada em usabilidade e acessibilidade.
-
-- **Theming:** Suporte nativo a Light e Dark Mode.
-- **Tokens:** Definições rigorosas de cores, espaçamentos (`spacing`), arredondamentos (`radius`) e sombras.
-- **Componentes Reutilizáveis:**
-  - `Card`: Container padronizado para exibição de dados.
-  - `Button`: Ações com feedback visual.
-  - `Input`: Campos de formulário com validação.
-  - `Header`: Navegação contextualizada.
-
-## Estrutura do Projeto
 
 ```bash
-/src
-  ├── components/ # Componentes reutilizáveis de UI
-  ├── screens/    # Telas da aplicação (Auth, Tutor, Vet)
-  ├── navigation/ # Configurações de fluxo e roteamento
-  ├── services/   # Integrações com APIs externas
-  ├── storage/    # Persistência da sessão do usuário (AsyncStorage)
-  ├── theme/      # Design System (tokens e provedores)
-  ├── hooks/      # Hooks customizados (useTheme, etc)
-  ├── context/    # Provedores de estado global
-  └── types/      # Definições de tipos TypeScript
+npm start
 ```
 
+Outras opções:
 
-## Fluxo de Navegação
+```bash
+npm run android
+npm run ios
+npm run web
+```
 
-A aplicação gerencia múltiplos fluxos de acesso garantindo segurança e segmentação de dados:
-- **Fluxo de Autenticação:** Login de usuários.
-- **Fluxo do Tutor:** Interface focada no acompanhamento individualizado.
-- **Fluxo do Veterinário:** Dashboard clínico com visão multi-paciente.
+Com o Expo iniciado, abra o projeto pelo QR Code no Expo Go ou pelo emulador configurado.
 
-## Diferenciais
+## 🔐 Autenticação
 
-- **Separação de Perfis:** Experiência totalmente personalizada para tutores e veterinários no mesmo app.
-- **Interface Orientada à Decisão:** Veterinários recebem priorização de pacientes que realmente precisam de atenção imediata.
-- **Offline First (Básico):** Uso de cache local para garantir que dados essenciais estejam disponíveis mesmo sem conexão.
+O aplicativo utiliza autenticação real fornecida pela API.
 
-## Link Demonstração
-Link da demonstração no Youtube ->
-https://youtu.be/OnSErOko6Vw
+- Cadastro: cria o usuário na API.
+- Login: autentica e mantém a sessão localmente.
+- Inicialização: valida a sessão com `GET /auth/me`.
+- Logout: invalida a sessão com `POST /auth/logout` e limpa o estado local.
+- Navegação protegida: usuários não autenticados permanecem no fluxo de autenticação; o perfil retornado pela API determina o fluxo de tutor ou veterinário.
 
-## Autores
-Artur Correia - [GitHub](https://github.com/artcorreia)<br>
-Gabriel H - [GitHub](https://github.com/gabrielhensg)<br>
-José Ricardo - [GitHub](https://github.com/jr-iannuzzi)<br> 
-Rafael de Freitas - [GitHub](https://github.com/devfreitas)<br> 
-Rafael Pascotte - [GitHub](https://github.com/pascotterafaaa)
+## 🔌 Integração com API
 
-## Licença
-Este projeto está sob a licença da organização [PetCare 360](https://github.com/PetCare-360)
+As principais funcionalidades dependentes da API incluem:
+
+- **Pacientes/Pets:** GET, POST, PUT e DELETE.
+- **Consultas:** GET, POST, PUT, PUT de finalização e DELETE.
+- **Autenticação:** login, cadastro, validação da sessão e logout.
+- **Saúde/monitoramento:** consultas de dados do pet.
+- **Alertas:** consulta periódica de alertas.
+- **Localização:** consulta dos dados de localização.
+
+Após mutations, os hooks invalidam as queries correspondentes para atualizar a interface automaticamente.
+
+## 🧭 Navegação
+
+A aplicação utiliza **React Navigation**, sem Expo Router.
+
+### Autenticação
+- SignIn
+- SignUp
+
+### Tutor
+- Home
+- Health
+- Map
+- Alerts
+- Profile
+
+### Veterinário
+- VetDashboard
+- Patients
+- PetDetails
+- Appointments
+- Settings
+
+## 🎨 Design System
+
+O projeto possui tema centralizado e componentes reutilizáveis para manter consistência visual:
+
+- `Button`
+- `Card`
+- `Header`
+- `InfoCard`
+- `Input`
+- `NotificationItem`
+- tokens de cores, espaçamento, tipografia, radius e sombras
+
+Também existe suporte a Light/Dark Mode.
+
+## 🧪 Validação
+
+Antes de executar o projeto, recomenda-se instalar as dependências:
+
+```bash
+npm install
+```
+
+Depois:
+
+```bash
+npx tsc --noEmit
+npm start
+```
+
+No Expo Go, validar pelo menos:
+
+1. Cadastro e login.
+2. Fechar/reabrir o app e validar a sessão.
+3. Logout.
+4. CRUD de pacientes.
+5. CRUD de consultas.
+6. Atualização de saúde/alertas/localização.
+7. Fluxos de tutor e veterinário.
+
+## 📚 Documentação adicional
+
+A documentação técnica está em [`docs/`](./docs):
+
+- [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — organização e responsabilidades das camadas.
+- [`SPRINT-3-CHECKLIST.md`](./docs/SPRINT-3-CHECKLIST.md) — checklist de atendimento aos requisitos do Sprint 3.
+
+## 👥 Autores
+
+Artur Correia — [GitHub](https://github.com/artcorreia)  
+Gabriel H — [GitHub](https://github.com/gabrielhensg)  
+José Ricardo — [GitHub](https://github.com/jr-iannuzzi)  
+Rafael de Freitas — [GitHub](https://github.com/devfreitas)  
+Rafael Pascotte — [GitHub](https://github.com/pascotterafaaa)
+
+## 📄 Licença
+
+Projeto desenvolvido pela organização PetCare 360.
