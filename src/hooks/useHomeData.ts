@@ -7,27 +7,34 @@ export function useHomeData() {
     queryFn: PatientService.getPets,
   });
   const firstPet = pets[0];
-  const { data: status, isLoading: healthLoading, isError: healthError } = useQuery({
+  const { data: status, isLoading: healthLoading, isError: healthError, refetch: refetchHealth } = useQuery({
     queryKey: ['pet-health', firstPet?.id],
     queryFn: () => PatientService.getHealthStatus(firstPet!.id),
     enabled: Boolean(firstPet),
     refetchInterval: 10000,
     refetchIntervalInBackground: true,
   });
-  const { data: location } = useQuery({
+  const { data: location, refetch: refetchLocation } = useQuery({
     queryKey: ['pet-location', firstPet?.id],
     queryFn: () => PatientService.getLocation(firstPet!.id),
     enabled: Boolean(firstPet),
     refetchInterval: 10000,
     refetchIntervalInBackground: true,
   });
-  const { data: activitySummary } = useQuery({
+  const { data: activitySummary, refetch: refetchActivitySummary } = useQuery({
     queryKey: ['pet-activity-summary', firstPet?.id],
     queryFn: () => PatientService.getActivitySummary(firstPet!.id),
     enabled: Boolean(firstPet),
     refetchInterval: 10000,
     refetchIntervalInBackground: true,
   });
+
+  const refresh = async () => {
+    await refetch();
+    if (firstPet) {
+      await Promise.all([refetchHealth(), refetchLocation(), refetchActivitySummary()]);
+    }
+  };
 
   return {
     status: firstPet && status ? { ...firstPet, ...status, location } : null,
@@ -36,7 +43,7 @@ export function useHomeData() {
     activitySummary,
     loading: petsLoading || healthLoading,
     isError: petsError || healthError,
-    loadData: refetch,
+    loadData: refresh,
     petName: firstPet?.name || 'Seu Pet',
     petImage: firstPet?.image,
   };

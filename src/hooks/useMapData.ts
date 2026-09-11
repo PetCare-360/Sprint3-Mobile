@@ -7,16 +7,23 @@ export function useMapData() {
     queryFn: PatientService.getPets,
   });
   const firstPet = pets[0];
-  const { data: status, isLoading: healthLoading, isError: healthError } = useQuery({
+  const { data: status, isLoading: healthLoading, isError: healthError, refetch: refetchHealth } = useQuery({
     queryKey: ['pet-health', firstPet?.id],
     queryFn: () => PatientService.getHealthStatus(firstPet!.id),
     enabled: Boolean(firstPet),
   });
-  const { data: location, isLoading: locationLoading, isError: locationError } = useQuery({
+  const { data: location, isLoading: locationLoading, isError: locationError, refetch: refetchLocation } = useQuery({
     queryKey: ['pet-location', firstPet?.id],
     queryFn: () => PatientService.getLocation(firstPet!.id),
     enabled: Boolean(firstPet),
   });
+
+  const retry = async () => {
+    await refetch();
+    if (firstPet) {
+      await Promise.all([refetchHealth(), refetchLocation()]);
+    }
+  };
 
   return {
     status: firstPet && status ? { ...firstPet, ...status, location } : null,
@@ -24,7 +31,7 @@ export function useMapData() {
     localPet: firstPet ?? null,
     loading: petsLoading || healthLoading || locationLoading,
     isError: petsError || healthError || locationError,
-    retry: refetch,
+    retry,
     petImage: firstPet?.image,
   };
 }

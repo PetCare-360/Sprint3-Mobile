@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '../components/Card';
 import { Header } from '../components/Header';
@@ -11,15 +11,38 @@ const { width } = Dimensions.get('window');
 
 export const HealthScreen = () => {
   const { colors, spacing, typography, radius, isDark } = useTheme();
-  const { status, loading } = useHomeData();
+  const { status, loading, isError, loadData } = useHomeData();
 
   return (
     <View style={[styles.mainContainer, { backgroundColor: colors.background }]}>
       <Header title="Saúde & Bem-estar" />
+      {loading && !status ? (
+        <View style={[styles.stateContainer, { backgroundColor: colors.background }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.stateText, { color: colors.textSecondary }]}>Carregando dados de saúde...</Text>
+        </View>
+      ) : isError && !status ? (
+        <View style={[styles.stateContainer, { backgroundColor: colors.background }]}>
+          <MaterialCommunityIcons name="alert-circle-outline" size={42} color={colors.danger} />
+          <Text style={[styles.stateTitle, { color: colors.text }]}>Não foi possível carregar os dados</Text>
+          <TouchableOpacity onPress={() => loadData()} style={[styles.retryButton, { backgroundColor: colors.primary }]}>
+            <Text style={styles.retryText}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      ) : !status ? (
+        <View style={[styles.stateContainer, { backgroundColor: colors.background }]}>
+          <MaterialCommunityIcons name="heart-off-outline" size={42} color={colors.textSecondary} />
+          <Text style={[styles.stateTitle, { color: colors.text }]}>Nenhum dado de saúde disponível</Text>
+          <Text style={[styles.stateText, { color: colors.textSecondary }]}>Cadastre um pet e conecte a coleira para acompanhar os dados.</Text>
+        </View>
+      ) : (
       <ScrollView 
         style={styles.container} 
         contentContainerStyle={[styles.content, { padding: spacing.lg }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={loading && !!status} onRefresh={loadData} tintColor={colors.primary} />
+        }
       >
         <View style={styles.headerInfo}>
           <Text style={[styles.title, { color: colors.text }]}>Estado Geral</Text>
@@ -118,6 +141,7 @@ export const HealthScreen = () => {
           </View>
         </Card>
       </ScrollView>
+      )}
     </View>
   );
 };
@@ -125,6 +149,34 @@ export const HealthScreen = () => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
+  },
+  stateContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  stateTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 14,
+  },
+  stateText: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  retryButton: {
+    marginTop: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryText: {
+    color: 'white',
+    fontWeight: '700',
   },
   container: {
     flex: 1,
