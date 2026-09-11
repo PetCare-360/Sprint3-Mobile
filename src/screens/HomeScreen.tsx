@@ -102,7 +102,7 @@ export const HomeScreen = () => {
           </Text>
           <TouchableOpacity>
             <Text style={{ color: colors.primary, fontWeight: '600' }}>Alertas</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.vitalsGrid}>
