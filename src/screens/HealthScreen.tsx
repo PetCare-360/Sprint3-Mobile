@@ -65,7 +65,7 @@ export const HealthScreen = () => {
             </View>
             <View style={[styles.dividerVertical, { backgroundColor: colors.divider }]} />
             <View style={styles.vitalItem}>
-              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>MÉDIA</Text>
+              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>STATUS</Text>
               <Text style={[styles.vitalValue, { color: colors.textSecondary }]}>API</Text>
             </View>
           </View>
@@ -91,7 +91,7 @@ export const HealthScreen = () => {
             </View>
             <View style={[styles.dividerVertical, { backgroundColor: colors.divider }]} />
             <View style={styles.vitalItem}>
-              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>MÉDIA</Text>
+              <Text style={[styles.vitalLabel, { color: colors.textSecondary }]}>STATUS</Text>
               <Text style={[styles.vitalValue, { color: colors.textSecondary }]}>API</Text>
             </View>
           </View>
