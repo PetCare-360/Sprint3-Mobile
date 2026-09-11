@@ -50,14 +50,14 @@ export const shadows = {
   primary: {
     ...Platform.select({
       ios: {
-        shadowColor: '#FF6B4A',
+        shadowColor: '#8B5CF6',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.28,
         shadowRadius: 20,
       },
       android: {
         elevation: 8,
-        shadowColor: '#FF6B4A',
+        shadowColor: '#8B5CF6',
       },
     }),
   },

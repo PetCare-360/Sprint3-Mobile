@@ -1,11 +1,10 @@
 // Paleta "vibrante & amigável" do PetCare360.
-// Em vez do roxo-índigo genérico de SaaS, usamos um par quente/fresco que remete
-// a coleira, brinquedo e parque: coral energético + turquesa de água + amarelo sol.
+// Roxo vibrante (identidade visual da marca) + turquesa de água + amarelo sol.
 export const palette = {
-  primary: '#FF6B4A',        // Coral — energia, calor, "hora do play"
-  primaryLight: '#FFB199',
-  primaryDark: '#E1502F',
-  primaryGlow: 'rgba(255, 107, 74, 0.16)',
+  primary: '#8B5CF6',        // Roxo vibrante — identidade da marca
+  primaryLight: '#C4B5FD',
+  primaryDark: '#6D28D9',
+  primaryGlow: 'rgba(139, 92, 246, 0.16)',
 
   secondary: '#14B8A6',      // Turquesa — frescor, água, saúde
   secondaryLight: '#5EEAD4',
@@ -72,9 +71,9 @@ export const dark = {
   card: palette.darkCard,
   text: '#FDF6EE',
   textSecondary: '#9FB0BD',
-  primary: '#FF8266',
-  primaryLight: '#FF6B4A',
-  primaryGlow: 'rgba(255, 130, 102, 0.2)',
+  primary: '#A78BFA',
+  primaryLight: '#8B5CF6',
+  primaryGlow: 'rgba(167, 139, 250, 0.2)',
   secondary: '#2DD4BF',
   secondaryGlow: 'rgba(45, 212, 191, 0.2)',
   accent: '#FFCE68',
