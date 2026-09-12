@@ -47,8 +47,11 @@ O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade
 ### Configuração (Variáveis de Ambiente)
 O aplicativo consome a API Spring Boot da Sprint 3. Crie um arquivo `.env` na raiz do projeto e configure:
 ```env
-EXPO_PUBLIC_API_BASE_URL=http://localhost:8080
-EXPO_PUBLIC_API_BASE_URL=https://sprint3-java-sempaginahtml.onrender.com/
+EXPO_PUBLIC_API_BASE_URL=https://sprint3-javasemhtml-1.onrender.com # API (usado para armazenar os dados do pet)
+
+# Firebase (usado apenas para armazenar a imagem do pet)
+EXPO_PUBLIC_FIREBASE_BASE_URL=https://s1mobile-f18a8-default-rtdb.firebaseio.com/
+EXPO_PUBLIC_FIREBASE_API_TOKEN=4it2ulgS70Q32BZycWCbZmrcC6rFERjJCGUiLH1K
 ```
 
 ### Instalação
@@ -133,8 +136,7 @@ A aplicação gerencia múltiplos fluxos de acesso garantindo segurança e segme
 
 ## Link Demonstração
 Link da demonstração no Youtube ->
-
-> Adicionar
+[Demonstração](https://youtu.be/W3OSDGeC_es)
 
 ## Autores
 LeonardoZerbinatti - [GitHub](https://github.com/LeonardoZerbinattiDeSales)<br>
