@@ -8,7 +8,7 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Input } from '../components/Input';
 
-export const ProfileScreen = () => {
+export const ProfileScreen = ({ navigation }: any) => {
   const { colors, spacing, typography, isDark, toggleTheme } = useTheme();
   const {
     petName,
@@ -182,6 +182,17 @@ export const ProfileScreen = () => {
               />
             </View>
           </Card>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('About')}
+            style={[styles.aboutRow, { borderColor: colors.divider, backgroundColor: colors.card }]}
+          >
+            <View style={styles.preferenceInfo}>
+              <Text style={[styles.preferenceLabel, { color: colors.text }]}>Sobre o app</Text>
+              <Text style={[styles.preferenceSub, { color: colors.textSecondary }]}>Versão e commit da build</Text>
+            </View>
+            <Icon name="chevron-right" size={22} color={colors.textSecondary} />
+          </TouchableOpacity>
         </View>
 
         <Button 
@@ -313,6 +324,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  aboutRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: 18,
+    padding: 16,
+    marginTop: 12,
   },
   preferenceInfo: {
     flex: 1,

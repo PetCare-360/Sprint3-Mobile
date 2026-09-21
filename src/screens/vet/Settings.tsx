@@ -53,6 +53,12 @@ export const Settings = ({ navigation }: any) => {
             switchValue={isDark} 
             onSwitchChange={toggleTheme} 
           />
+          <SettingItem
+            icon="information-outline"
+            label="Sobre"
+            value="Versão do app e commit da build"
+            onPress={() => navigation.navigate('About')}
+          />
         </Card>
 
         <TouchableOpacity 

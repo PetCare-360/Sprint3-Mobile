@@ -5,6 +5,7 @@ import { Patients } from '../screens/vet/Patients';
 import { PetDetails } from '../screens/vet/PetDetails';
 import { Settings } from '../screens/vet/Settings';
 import { Appointments } from '../screens/vet/Appointments';
+import { AboutScreen } from '../screens/AboutScreen';
 import { useTheme } from '../hooks/useTheme';
 
 const Stack = createNativeStackNavigator();
@@ -36,6 +37,7 @@ export const VetStack = () => {
         component={Settings} 
       />
       <Stack.Screen name="Appointments" component={Appointments} />
+      <Stack.Screen name="About" component={AboutScreen} />
     </Stack.Navigator>
   );
 };
