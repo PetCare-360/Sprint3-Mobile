@@ -13,6 +13,7 @@ O **PetCare 360** é uma solução mobile robusta projetada para o monitoramento
 - **Dashboard de Saúde:** Visualização em tempo real de temperatura, nível de atividade e batimentos cardíacos.
     - *Visualização em tempo real de temperatura* - Dados da última leitura retornada pela API
 - **Alertas Inteligentes:** Notificações instantâneas sobre anomalias nos dados vitais do pet.
+    - **Notificação local (push do dispositivo):** sempre que a API detecta um novo alerta de saúde (`GET /pets/quick-alerts`, verificado a cada 10s), o app dispara uma notificação local via `expo-notifications`. Tocar na notificação leva direto para a aba de Alertas.
 - **Perfil do Pet:** Centralização de informações cadastrais e histórico básico.
 - **Localização:** Integração com mapas para visualização da última localização do pet.
 
@@ -35,6 +36,8 @@ O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade
 - **Estado e Consumo:** Axios para HTTP e TanStack Query para cache, loading, mutations e invalidação de dados.
 - **Persistência:** AsyncStorage para armazenamento local de preferências e dados de sessão.
 - **Geolocalização:** React Native Maps.
+- **Notificações:** `expo-notifications` (notificações locais, sem dependência de servidor de push).
+- **Versão publicada:** a tela "Sobre o App" (Perfil → Sobre / Configurações → Sobre) exibe a versão e o hash do commit da build, injetados automaticamente em tempo de build via `app.config.js`.
 
 
 ## Como Rodar o Projeto
