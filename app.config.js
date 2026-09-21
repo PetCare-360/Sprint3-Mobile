@@ -22,6 +22,13 @@ function resolveCommitHash() {
 
 module.exports = {
   ...baseConfig.expo,
+  android: {
+    ...baseConfig.expo.android,
+    // Identificador único do app nas lojas/Firebase (formato reverso de domínio).
+    // Depois de definido, não deve mudar — trocar o package troca o "app" do
+    // ponto de vista do Android/Firebase/Play Store.
+    package: 'com.devfreitas.petcare360',
+  },
   extra: {
     ...baseConfig.expo.extra,
     commitHash: resolveCommitHash(),
