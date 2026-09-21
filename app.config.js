@@ -25,6 +25,13 @@ module.exports = {
   extra: {
     ...baseConfig.expo.extra,
     commitHash: resolveCommitHash(),
+    eas: {
+      // Preenchido automaticamente pelo comando `eas init` na primeira vez
+      // (ele imprime o projectId no terminal). Como este é um app.config.js
+      // dinâmico, o EAS CLI não consegue gravar esse valor sozinho aqui —
+      // cole o UUID retornado manualmente após rodar `eas init`.
+      projectId: 'e1e702ce-3e65-4300-8125-f5a08578d831',
+    },
   },
   plugins: [
     ...(baseConfig.expo.plugins ?? []),
