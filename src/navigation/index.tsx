@@ -8,6 +8,7 @@ import { HealthScreen } from '../screens/HealthScreen';
 import { MapScreen } from '../screens/MapScreen';
 import { AlertsScreen } from '../screens/AlertsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { AboutScreen } from '../screens/AboutScreen';
 import { SignIn } from '../screens/auth/SignIn';
 import { SignUp } from '../screens/auth/SignUp';
 import { VetStack } from './VetStack';
@@ -15,13 +16,19 @@ import { VetStack } from './VetStack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../hooks/useTheme';
+import { useAlertNotifications } from '../hooks/useAlertNotifications';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+const TutorRootStack = createNativeStackNavigator();
 
 const TutorTabs = () => {
   const { colors } = useTheme();
-  
+
+  // Fica de olho nos alertas de saúde reais o tempo todo que o tutor está
+  // logado, não só quando a aba Alertas está em foco.
+  useAlertNotifications();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -88,6 +95,15 @@ const TutorTabs = () => {
   );
 };
 
+// Envolve as abas do tutor num stack só para caber a tela "Sobre o App",
+// acessível a partir do Perfil, sem mexer na estrutura das abas em si.
+const TutorStack = () => (
+  <TutorRootStack.Navigator screenOptions={{ headerShown: false }}>
+    <TutorRootStack.Screen name="TutorTabs" component={TutorTabs} />
+    <TutorRootStack.Screen name="About" component={AboutScreen} />
+  </TutorRootStack.Navigator>
+);
+
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SignIn" component={SignIn} />
@@ -114,7 +130,7 @@ export const AppNavigator = () => {
       ) : user.role === 'ROLE_VETERINARIO' || user.role === 'ROLE_ADMIN' ? (
         <Stack.Screen name="Vet" component={VetStack} />
       ) : (
-        <Stack.Screen name="Tutor" component={TutorTabs} />
+        <Stack.Screen name="Tutor" component={TutorStack} />
       )}
     </Stack.Navigator>
   );
