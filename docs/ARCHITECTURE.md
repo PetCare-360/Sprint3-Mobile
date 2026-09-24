@@ -58,13 +58,3 @@ API
 ```
 
 Após uma mutation, o hook invalida a query relacionada. O TanStack Query busca os dados atualizados e a tela é renderizada novamente sem depender de reload manual.
-
-## Regras de manutenção
-
-1. Não usar `fetch` para chamadas HTTP.
-2. Não colocar Axios diretamente nas screens.
-3. Requisições devem ficar encapsuladas em services/hooks.
-4. Dados funcionais exibidos pela aplicação devem vir da API.
-5. Mutations devem invalidar ou atualizar as queries afetadas.
-6. Componentes visuais reutilizáveis devem permanecer em `components/`.
-7. Alterações de backend não fazem parte deste projeto mobile.
