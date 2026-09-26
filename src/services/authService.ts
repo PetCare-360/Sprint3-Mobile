@@ -1,6 +1,7 @@
 import { httpClient } from './httpClient';
 import { AuthResponse, RegisterRequest, UserResponse } from '../types/auth';
 import { ApiException } from '../types/apiException';
+import { sessionCookieStorage } from '../storage/sessionCookieStorage';
 import axios from 'axios';
 
 function extractErrorMessage(error: unknown, fallback: string): string {
@@ -62,26 +63,16 @@ export const authService = {
     }
   },
 
-  /**
-   * Chama o endpoint real de logout, que invalida a sessão/cookie no
-   * servidor. Se a chamada falhar (ex.: sessão já expirada, sem internet),
-   * o logout local segue em frente mesmo assim — o usuário não pode ficar
-   * preso numa tela protegida por causa de uma falha de rede.
-   */
   async signOut(): Promise<void> {
     try {
       await httpClient.post('/auth/logout');
     } catch (error) {
       console.warn('[authService] Falha ao encerrar sessão no servidor.', error);
+    } finally {
+      await sessionCookieStorage.removeCookie();
     }
   },
 
-  /**
-   * Usa o endpoint dedicado de sessão (não depende mais de uma rota de
-   * negócio como proxy). Devolve o usuário atualizado quando a sessão
-   * salva ainda é válida, ou null quando expirou/foi revogada — assim o
-   * app pode ressincronizar nome/e-mail/role com o que está no servidor.
-   */
   async validateSession(): Promise<UserResponse | null> {
     try {
       const { data } = await httpClient.get<UserResponse>('/auth/me');
