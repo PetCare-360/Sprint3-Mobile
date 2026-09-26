@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "82496624818",
+    "firebase_url": "https://s1mobile-f18a8-default-rtdb.firebaseio.com",
+    "project_id": "s1mobile-f18a8",
+    "storage_bucket": "s1mobile-f18a8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:82496624818:android:c30c7c0e6e9e29042191ab",
+        "android_client_info": {
+          "package_name": "com.company.petcare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNTSIWqWpxkHQ_Vno43rMGyF_tWSxbfL4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
