@@ -1,17 +1,15 @@
-// Paleta "vibrante & amigável" do PetCare360.
-// Roxo vibrante (identidade visual da marca) + turquesa de água + amarelo sol.
 export const palette = {
-  primary: '#8B5CF6',        // Roxo vibrante — identidade da marca
+  primary: '#8B5CF6',       
   primaryLight: '#C4B5FD',
   primaryDark: '#6D28D9',
   primaryGlow: 'rgba(139, 92, 246, 0.16)',
 
-  secondary: '#14B8A6',      // Turquesa — frescor, água, saúde
+  secondary: '#14B8A6', 
   secondaryLight: '#5EEAD4',
   secondaryDark: '#0F8F81',
   secondaryGlow: 'rgba(20, 184, 166, 0.16)',
 
-  accent: '#FFC145',         // Amarelo sol — destaques, medalhas, conquistas
+  accent: '#FFC145',     
   accentLight: '#FFE1A0',
   accentDark: '#E8A526',
 
@@ -44,7 +42,7 @@ export const palette = {
 
 export const light = {
   ...palette,
-  background: '#FFF8F0',     // creme quente — acolhedor, não clínico
+  background: '#FFF8F0',
   surface: '#FFFFFF',
   card: '#FFFFFF',
   text: '#2B2118',

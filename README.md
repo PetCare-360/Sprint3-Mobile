@@ -14,6 +14,7 @@ O **PetCare 360** é uma solução mobile robusta projetada para o monitoramento
     - *Visualização em tempo real de temperatura* - Dados da última leitura retornada pela API
 - **Alertas Inteligentes:** Notificações instantâneas sobre anomalias nos dados vitais do pet.
     - **Notificação local (push do dispositivo):** sempre que a API detecta um novo alerta de saúde (`GET /pets/quick-alerts`, verificado a cada 10s), o app dispara uma notificação local via `expo-notifications`. Tocar na notificação leva direto para a aba de Alertas.
+- **Lembrete de Consulta:** ao criar ou editar uma consulta, o app agenda automaticamente uma notificação local para 30 minutos antes do horário marcado (cancelada se a consulta for editada para outra data, finalizada ou excluída). Segundo cenário de notificação, independente do sensor IoT — disparado por uma ação real do usuário (agendar consulta).
 - **Perfil do Pet:** Centralização de informações cadastrais e histórico básico.
 - **Localização:** Integração com mapas para visualização da última localização do pet.
 

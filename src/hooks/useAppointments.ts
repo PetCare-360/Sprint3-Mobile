@@ -3,6 +3,8 @@ import { Alert } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { appointmentService } from '../services/appointmentService';
 import { PatientService } from '../services/patientService';
+import { notificationService } from '../services/notificationService';
+import { appointmentReminderStorage } from '../storage/appointmentReminderStorage';
 import { Appointment } from '../types/appointment';
 
 const formatForInput = (value: string) => {
@@ -55,10 +57,30 @@ export function useAppointments() {
     setEditingId(null);
   };
 
+  const scheduleReminderFor = async (appointment: Appointment) => {
+    const identifier = await notificationService.scheduleAppointmentReminder({
+      petName: appointment.petName,
+      reason: appointment.reason,
+      scheduledAt: new Date(appointment.scheduledAt),
+    });
+    if (identifier) {
+      await appointmentReminderStorage.set(appointment.id, identifier);
+    }
+  };
+
+  const cancelReminderFor = async (appointmentId: number) => {
+    const identifier = await appointmentReminderStorage.get(appointmentId);
+    if (identifier) {
+      await notificationService.cancelAppointmentReminder(identifier);
+      await appointmentReminderStorage.remove(appointmentId);
+    }
+  };
+
   const mutation = useMutation({
     mutationFn: appointmentService.create,
-    onSuccess: async () => {
+    onSuccess: async created => {
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await scheduleReminderFor(created);
       resetForm();
       Alert.alert('Sucesso', 'Consulta solicitada.');
     },
@@ -68,8 +90,10 @@ export function useAppointments() {
   const updateMutation = useMutation({
     mutationFn: ({ id, request }: { id: number; request: Parameters<typeof appointmentService.update>[1] }) =>
       appointmentService.update(id, request),
-    onSuccess: async () => {
+    onSuccess: async (updated, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await cancelReminderFor(variables.id);
+      await scheduleReminderFor(updated);
       resetForm();
       Alert.alert('Sucesso', 'Consulta atualizada.');
     },
@@ -78,13 +102,19 @@ export function useAppointments() {
 
   const finishMutation = useMutation({
     mutationFn: appointmentService.finish,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['appointments'] }),
+    onSuccess: async (_, id) => {
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await cancelReminderFor(id);
+    },
     onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível finalizar a consulta.'),
   });
 
   const removeMutation = useMutation({
     mutationFn: appointmentService.remove,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['appointments'] }),
+    onSuccess: async (_, id) => {
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await cancelReminderFor(id);
+    },
     onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível excluir a consulta.'),
   });
 

@@ -41,6 +41,7 @@ httpClient.interceptors.request.use(async config => {
   return config;
 });
 
+
 httpClient.interceptors.response.use(
   response => {
     const sessionCookie = extractSessionCookie(response.headers?.['set-cookie']);

@@ -1,5 +1,3 @@
-// Escala de raio ampliada para reforçar a identidade "amigável": cantos bem
-// arredondados em todo o app, do botão ao card, como um brinquedo de pet.
 export const radius = {
   none: 0,
   xs: 8,

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { AppNavigator } from './src/navigation';
-import { navigationRef, navigateToAlerts } from './src/navigation/navigationRef';
+import { navigationRef, navigateToAlerts, navigateToAppointments } from './src/navigation/navigationRef';
 import { AuthProvider } from './src/context/AuthContext';
 import { ThemeProvider, useAppTheme } from './src/theme/themeProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,6 +16,8 @@ const AppContent = () => {
     const subscription = notificationService.addResponseListener(data => {
       if (data.type === 'pet-alert') {
         navigateToAlerts();
+      } else if (data.type === 'appointment-reminder') {
+        navigateToAppointments();
       }
     });
     return () => subscription.remove();

@@ -17,7 +17,6 @@ export const appointmentService = {
     return data;
   },
 
-  // Edição real da consulta via PUT dedicado.
   async update(id: number, request: AppointmentRequest): Promise<Appointment> {
     const { data } = await httpClient.put<Appointment>(`/appointments/${id}`, request);
     return data;

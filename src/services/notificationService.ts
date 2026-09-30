@@ -1,8 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
-// Precisa ser configurado uma única vez, fora de qualquer componente, para
-// o sistema saber como exibir uma notificação enquanto o app está aberto.
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -14,12 +13,9 @@ Notifications.setNotificationHandler({
 
 export const NOTIFICATION_CHANNEL_ID = 'pet-alerts';
 
+export const APPOINTMENT_REMINDER_LEAD_MINUTES = 30;
+
 export const notificationService = {
-  /**
-   * Garante permissão do usuário e, no Android, um canal de notificação
-   * dedicado a alertas de saúde dos pets (obrigatório a partir do Android 8).
-   * Retorna true se está tudo pronto para notificar.
-   */
   async ensureReady(): Promise<boolean> {
     let permissions = await Notifications.getPermissionsAsync();
     if (permissions.status !== 'granted') {
@@ -39,11 +35,6 @@ export const notificationService = {
     return true;
   },
 
-  /**
-   * Dispara uma notificação local imediata (trigger: null) para um alerta de
-   * saúde real vindo da API. `data` carrega o petId para permitir, no futuro,
-   * levar o usuário direto ao pet em questão.
-   */
   async notifyPetAlert(params: { petId: number; petName: string; reason: string; critical: boolean }): Promise<void> {
     await Notifications.scheduleNotificationAsync({
       content: {
@@ -60,5 +51,38 @@ export const notificationService = {
     return Notifications.addNotificationResponseReceivedListener(response => {
       callback(response.notification.request.content.data ?? {});
     });
+  },
+
+  async scheduleAppointmentReminder(params: {
+    petName: string;
+    reason: string;
+    scheduledAt: Date;
+  }): Promise<string | null> {
+    const ready = await this.ensureReady();
+    if (!ready) return null;
+
+    const triggerDate = new Date(params.scheduledAt.getTime() - APPOINTMENT_REMINDER_LEAD_MINUTES * 60 * 1000);
+    if (triggerDate.getTime() <= Date.now()) return null;
+
+    return Notifications.scheduleNotificationAsync({
+      content: {
+        title: `📅 Consulta em ${APPOINTMENT_REMINDER_LEAD_MINUTES} min`,
+        body: `${params.petName} — ${params.reason}`,
+        data: { type: 'appointment-reminder' },
+        sound: true,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: triggerDate,
+        channelId: NOTIFICATION_CHANNEL_ID,
+      },
+    });
+  },
+
+  async cancelAppointmentReminder(identifier: string): Promise<void> {
+    try {
+      await Notifications.cancelScheduledNotificationAsync(identifier);
+    } catch {
+    }
   },
 };

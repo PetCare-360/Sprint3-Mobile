@@ -1,5 +1,3 @@
-// Espelha br.com.fiap.petcare360_java.dto.
-
 export type ApiRole = 'ROLE_ADMIN' | 'ROLE_CLIENTE' | 'ROLE_VETERINARIO';
 
 export interface AuthRequest {

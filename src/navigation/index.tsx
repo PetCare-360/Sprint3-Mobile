@@ -25,8 +25,6 @@ const TutorRootStack = createNativeStackNavigator();
 const TutorTabs = () => {
   const { colors } = useTheme();
 
-  // Fica de olho nos alertas de saúde reais o tempo todo que o tutor está
-  // logado, não só quando a aba Alertas está em foco.
   useAlertNotifications();
 
   return (
@@ -95,8 +93,6 @@ const TutorTabs = () => {
   );
 };
 
-// Envolve as abas do tutor num stack só para caber a tela "Sobre o App",
-// acessível a partir do Perfil, sem mexer na estrutura das abas em si.
 const TutorStack = () => (
   <TutorRootStack.Navigator screenOptions={{ headerShown: false }}>
     <TutorRootStack.Screen name="TutorTabs" component={TutorTabs} />
