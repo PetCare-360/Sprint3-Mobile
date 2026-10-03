@@ -35,7 +35,8 @@ O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade
 - **Linguagem:** TypeScript.
 - **Navegação:** React Navigation (Stack e Bottom Tabs).
 - **Estado e Consumo:** Axios para HTTP e TanStack Query para cache, loading, mutations e invalidação de dados.
-- **Persistência:** AsyncStorage para armazenamento local de preferências e dados de sessão.
+- **Persistência:** AsyncStorage para preferências e dados de exibição do usuário; `expo-secure-store` (Keychain/Keystore) para o token JWT.
+- **Autenticação:** JWT (`Authorization: Bearer <token>`), emitido por `POST /auth/login` e anexado automaticamente a toda requisição via interceptor do Axios (`httpClient.ts`). A API é stateless — não há cookie de sessão.
 - **Geolocalização:** React Native Maps.
 - **Notificações:** `expo-notifications` (notificações locais, sem dependência de servidor de push).
 - **Versão publicada:** a tela "Sobre o App" (Perfil → Sobre / Configurações → Sobre) exibe a versão e o hash do commit da build, injetados automaticamente em tempo de build via `app.config.js`.
@@ -117,7 +118,7 @@ O aplicativo conta com uma identidade visual própria e escalável, focada em us
   ├── screens/    # Telas da aplicação (Auth, Tutor, Vet)
   ├── navigation/ # Configurações de fluxo e roteamento
   ├── services/   # Integrações com APIs externas
-  ├── storage/    # Persistência da sessão do usuário (AsyncStorage)
+  ├── storage/    # Persistência local: token JWT (SecureStore) e dados do usuário (AsyncStorage)
   ├── theme/      # Design System (tokens e provedores)
   ├── hooks/      # Hooks customizados (useTheme, etc)
   ├── context/    # Provedores de estado global

@@ -24,7 +24,7 @@ module.exports = {
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
+      foregroundImage: './public/branco.png',
       backgroundColor: '#ffffff',
     },
     predictiveBackGestureEnabled: false,
@@ -63,5 +63,6 @@ module.exports = {
         color: '#8B5CF6',
       },
     ],
+    'expo-secure-store',
   ],
 };

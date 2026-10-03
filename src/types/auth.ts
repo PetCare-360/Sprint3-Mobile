@@ -22,4 +22,9 @@ export interface UserResponse {
 export interface AuthResponse {
   message: string;
   user: UserResponse;
+  // Só vêm preenchidos na resposta de /auth/login — /auth/register não
+  // emite token (o backend exige um login separado depois de cadastrar).
+  token?: string;
+  tokenType?: string;
+  expiresIn?: number;
 }

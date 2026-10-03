@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { sessionCookieStorage } from '../storage/sessionCookieStorage';
+import { tokenStorage } from '../storage/tokenStorage';
 
 const baseURL = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
 
@@ -9,55 +9,40 @@ if (!baseURL) {
   );
 }
 
+// A API agora é 100% stateless (JWT via Authorization: Bearer), sem cookie
+// de sessão — por isso withCredentials não é mais necessário.
 export const httpClient = axios.create({
   baseURL,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-function extractSessionCookie(rawSetCookie: string | string[] | undefined): string | null {
-  if (!rawSetCookie) return null;
-  const values = Array.isArray(rawSetCookie) ? rawSetCookie : [rawSetCookie];
-  for (const value of values) {
-    const match = value.match(/JSESSIONID=[^;]+/i);
-    if (match) return match[0];
-  }
-  return null;
-}
-
+// Anexa o JWT salvo em toda requisição — nenhum service precisa saber que
+// isso existe. Sem esse interceptor, toda rota protegida responderia 401.
 httpClient.interceptors.request.use(async config => {
-  const cookie = await sessionCookieStorage.getCookie();
-  if (cookie) {
+  const token = await tokenStorage.getToken();
+  if (token) {
     config.headers = config.headers ?? {};
-    config.headers.Cookie = cookie;
+    config.headers.Authorization = `Bearer ${token}`;
     if (__DEV__) {
-      console.log(`[httpClient] → ${config.method?.toUpperCase()} ${config.url} | Cookie enviado: ${cookie}`);
+      console.log(`[httpClient] → ${config.method?.toUpperCase()} ${config.url} | Authorization: Bearer ${token.slice(0, 12)}...`);
     }
   } else if (__DEV__) {
-    console.log(`[httpClient] → ${config.method?.toUpperCase()} ${config.url} | Sem cookie de sessão salvo`);
+    console.log(`[httpClient] → ${config.method?.toUpperCase()} ${config.url} | Sem token salvo`);
   }
   return config;
 });
 
-
+// Se a API rejeitar o token (expirado, inválido ou ausente), limpa a
+// credencial local — não faz sentido continuar reenviando um JWT que o
+// servidor já não aceita mais. O AuthContext percebe isso no próximo
+// validateSession() e manda o usuário de volta pro login.
 httpClient.interceptors.response.use(
-  response => {
-    const sessionCookie = extractSessionCookie(response.headers?.['set-cookie']);
-    if (sessionCookie) {
-      if (__DEV__) {
-        console.log(`[httpClient] ← Set-Cookie capturado: ${sessionCookie}`);
-      }
-      sessionCookieStorage.saveCookie(sessionCookie);
-    } else if (__DEV__ && (response.config.url === '/auth/login' || response.config.url === '/auth/register')) {
-      console.warn('[httpClient] ⚠️ Login OK mas nenhum Set-Cookie foi lido da resposta.');
-    }
-    return response;
-  },
+  response => response,
   error => {
     if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
-      sessionCookieStorage.removeCookie();
+      tokenStorage.removeToken();
     }
     return Promise.reject(error);
   },
