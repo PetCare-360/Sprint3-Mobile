@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { User, userStorage } from '../storage/userStorage';
+import { tokenStorage } from '../storage/tokenStorage';
 import { authService } from '../services/authService';
 import { RegisterRequest } from '../types/auth';
 import { ApiException } from '../types/apiException';
@@ -36,25 +37,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storageUser = await userStorage.getUser();
         if (!isStoredUser(storageUser)) {
           if (storageUser) await userStorage.removeUser();
+          await tokenStorage.removeToken();
           return;
         }
 
-        const apiUser = await authService.validateSession();
-        if (apiUser) {
-          const freshUser: User = {
-            id: apiUser.id,
-            name: apiUser.name,
-            email: apiUser.email,
-            role: apiUser.role,
-          };
-          await userStorage.saveUser(freshUser);
-          setUser(freshUser);
-        } else {
-          await userStorage.removeUser();
+        try {
+          const apiUser = await authService.validateSession();
+          if (apiUser) {
+            const freshUser: User = {
+              id: apiUser.id,
+              name: apiUser.name,
+              email: apiUser.email,
+              role: apiUser.role,
+            };
+            await userStorage.saveUser(freshUser);
+            setUser(freshUser);
+          } else {
+            // Token expirado ou rejeitado pela API (401/403)
+            await userStorage.removeUser();
+            await tokenStorage.removeToken();
+            setUser(null);
+          }
+        } catch (networkError) {
+          // Em falha de conexão transitória ou Render acordando (cold start),
+          // preserva a sessão salva localmente para não deslogar indevidamente.
+          console.warn('[AuthContext] Falha de conexão ao validar sessão. Mantendo sessão salva.', networkError);
+          setUser(storageUser);
         }
       } catch (error) {
-        console.warn('[AuthContext] Não foi possível validar a sessão salva.', error);
+        console.warn('[AuthContext] Erro ao carregar dados locais do usuário.', error);
         await userStorage.removeUser();
+        await tokenStorage.removeToken();
       } finally {
         setLoading(false);
       }
@@ -91,9 +104,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = useCallback(async () => {
-    await authService.signOut();
-    await userStorage.removeUser();
-    setUser(null);
+    try {
+      await authService.signOut();
+    } finally {
+      await userStorage.removeUser();
+      await tokenStorage.removeToken();
+      setUser(null);
+    }
   }, []);
 
   return (
