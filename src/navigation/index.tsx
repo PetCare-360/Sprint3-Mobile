@@ -11,6 +11,7 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 import { AboutScreen } from '../screens/AboutScreen';
 import { SignIn } from '../screens/auth/SignIn';
 import { SignUp } from '../screens/auth/SignUp';
+import { Appointments } from '../screens/vet/Appointments';
 import { VetStack } from './VetStack';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -96,6 +97,7 @@ const TutorTabs = () => {
 const TutorStack = () => (
   <TutorRootStack.Navigator screenOptions={{ headerShown: false }}>
     <TutorRootStack.Screen name="TutorTabs" component={TutorTabs} />
+    <TutorRootStack.Screen name="Appointments" component={Appointments} />
     <TutorRootStack.Screen name="About" component={AboutScreen} />
   </TutorRootStack.Navigator>
 );

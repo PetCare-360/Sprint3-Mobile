@@ -184,6 +184,17 @@ export const ProfileScreen = ({ navigation }: any) => {
           </Card>
 
           <TouchableOpacity
+            onPress={() => navigation.navigate('Appointments')}
+            style={[styles.aboutRow, { borderColor: colors.divider, backgroundColor: colors.card }]}
+          >
+            <View style={styles.preferenceInfo}>
+              <Text style={[styles.preferenceLabel, { color: colors.text }]}>Minhas Consultas</Text>
+              <Text style={[styles.preferenceSub, { color: colors.textSecondary }]}>Solicitar, acompanhar e gerenciar agendamentos</Text>
+            </View>
+            <Icon name="calendar-clock" size={22} color={colors.primary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={() => navigation.navigate('About')}
             style={[styles.aboutRow, { borderColor: colors.divider, backgroundColor: colors.card }]}
           >
