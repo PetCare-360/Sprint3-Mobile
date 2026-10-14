@@ -30,6 +30,11 @@ module.exports = {
     predictiveBackGestureEnabled: false,
     package: 'com.company.petcare',
     googleServicesFile: './google-services.json',
+    config: {
+      googleMaps: {
+        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyDNTSIWqWpxkHQ_Vno43rMGyF_tWSxbfL4',
+      },
+    },
   },
   web: {
     favicon: './assets/favicon.png',

@@ -9,9 +9,23 @@ import { useMapData } from '../hooks/useMapData';
 
 const { width, height } = Dimensions.get('window');
 
+const DEFAULT_REGION = {
+  latitude: -23.55052,
+  longitude: -46.633308,
+  latitudeDelta: 0.05,
+  longitudeDelta: 0.05,
+};
+
 export const MapScreen = () => {
   const { status, location, localPet, loading, isError, retry, petImage } = useMapData();
   const { colors, spacing, radius, shadows, isDark } = useTheme();
+  const mapRef = React.useRef<MapView>(null);
+
+  React.useEffect(() => {
+    if (location && mapRef.current) {
+      mapRef.current.animateToRegion(location, 1000);
+    }
+  }, [location]);
 
   if (loading) {
     return (
@@ -37,9 +51,10 @@ export const MapScreen = () => {
       <Header title="Localização" transparent />
       
       <MapView
+        ref={mapRef}
         style={styles.map}
         provider={PROVIDER_GOOGLE}
-        initialRegion={location}
+        initialRegion={location ?? DEFAULT_REGION}
         customMapStyle={isDark ? midnightMapStyle : []}
       >
         {location && (
@@ -62,7 +77,13 @@ export const MapScreen = () => {
         <TouchableOpacity style={[styles.controlButton, { backgroundColor: colors.card, ...shadows.md }]}>
           <Icon name="layers-outline" size={24} color={colors.text} />
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.controlButton, { backgroundColor: colors.card, ...shadows.md, marginTop: spacing.md }]}>
+        <TouchableOpacity
+          style={[styles.controlButton, { backgroundColor: colors.card, ...shadows.md, marginTop: spacing.md }]}
+          onPress={() => {
+            const targetRegion = location ?? DEFAULT_REGION;
+            mapRef.current?.animateToRegion(targetRegion, 1000);
+          }}
+        >
           <Icon name="crosshairs-gps" size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
