@@ -51,7 +51,7 @@ export const AboutScreen = ({ navigation }: any) => {
         </TouchableOpacity>
 
         <Text style={[styles.footer, { color: colors.textSecondary }]}>
-          Desenvolvido como projeto acadêmico (Sprint 4) com React Native + Expo.
+          Desenvolvido como projeto acadêmico (Sprint 3) com React Native + Expo.
         </Text>
       </ScrollView>
     </View>

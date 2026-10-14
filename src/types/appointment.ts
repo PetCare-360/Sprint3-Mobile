@@ -2,6 +2,8 @@ export type AppointmentStatus = 'REQUESTED' | 'SCHEDULED' | 'FINISHED' | 'CANCEL
 
 export interface Appointment {
   id: number;
+  petId?: number;
+  veterinarianId?: number;
   petName: string;
   tutorName: string;
   veterinarianName: string;

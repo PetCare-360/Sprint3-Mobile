@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Switch, TouchableOpacity} from 'react-native';
+import Constants from 'expo-constants';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useProfileForm } from '../hooks/useProfileForm';
@@ -220,7 +221,9 @@ export const ProfileScreen = ({ navigation }: any) => {
           textStyle={{ color: colors.danger }}
         />
 
-        <Text style={[styles.versionText, { color: colors.textSecondary }]}>PetCare 360 v1.2.0 • 2026</Text>
+        <Text style={[styles.versionText, { color: colors.textSecondary }]}>
+          PetCare 360 v{Constants.expoConfig?.version ?? '2.0.0'} • 2026
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );

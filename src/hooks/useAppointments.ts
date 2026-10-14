@@ -143,8 +143,12 @@ export function useAppointments() {
   };
 
   const startEdit = (appointment: Appointment) => {
-    const patient = patients.find(item => item.name.trim().toLowerCase() === appointment.petName.trim().toLowerCase());
-    const veterinarian = veterinarians.find(item => item.name.trim().toLowerCase() === appointment.veterinarianName.trim().toLowerCase());
+    const patient = appointment.petId
+      ? patients.find(item => String(item.id) === String(appointment.petId))
+      : patients.find(item => item.name.trim().toLowerCase() === appointment.petName.trim().toLowerCase());
+    const veterinarian = appointment.veterinarianId
+      ? veterinarians.find(item => item.id === appointment.veterinarianId)
+      : veterinarians.find(item => item.name.trim().toLowerCase() === appointment.veterinarianName.trim().toLowerCase());
 
     setEditingId(appointment.id);
     setPetId(patient?.id ?? '');
