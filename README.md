@@ -50,21 +50,20 @@ O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade
 - Aplicativo **Expo Go** instalado no dispositivo móvel ou emulador configurado.
 
 ### Configuração (Variáveis de Ambiente)
-O aplicativo consome a API Spring Boot da Sprint 3. Crie um arquivo `.env` na raiz do projeto e configure:
+O aplicativo consome a API Spring Boot da Sprint 3 hospedada no Render. Crie um arquivo `.env` na raiz do projeto com as seguintes chaves:
 ```env
-EXPO_PUBLIC_API_BASE_URL=https://sprint3-javasemhtml-1.onrender.com # API (usado para armazenar os dados do pet)
-
-# Firebase (usado apenas para armazenar a imagem do pet)
+EXPO_PUBLIC_API_BASE_URL=https://sprint3-java-sempaginahtml.onrender.com/
 EXPO_PUBLIC_FIREBASE_BASE_URL=https://s1mobile-f18a8-default-rtdb.firebaseio.com/
 EXPO_PUBLIC_FIREBASE_API_TOKEN=4it2ulgS70Q32BZycWCbZmrcC6rFERjJCGUiLH1K
+EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyDNTSIWqWpxkHQ_Vno43rMGyF_tWSxbfL4
 ```
 
 ### Instalação
 1. Clone o repositório:
    ```bash
-    git clone https://github.com/PetCare-360/Sprint3-Mobile
-    cd Sprint3-Mobile
-    ```
+   git clone https://github.com/PetCare-360/Sprint3-Mobile
+   cd Sprint3-Mobile
+   ```
 2. Instale as dependências:
    ```bash
    npm install
@@ -76,20 +75,25 @@ Inicie o servidor do Expo utilizando um dos comandos abaixo:
 - `npm run android`: Inicia no emulador Android.
 - `npm run web`: Inicia a versão web.
 
-### Autenticação
-Crie um usuário pela tela de cadastro e entre com as credenciais cadastradas na API. O perfil retornado pelo backend define o fluxo de tutor ou veterinário, e a sessão é restaurada ao reabrir o aplicativo.
+### Autenticação e Avaliação dos CRUDs
+- **Cadastro e Login:** Crie um usuário na tela de cadastro (`SignUp`) informando nome, e-mail, senha e escolhendo o tipo de conta. A autenticação é real com JWT emitido pelo backend Spring Boot e a sessão é salva no dispositivo.
+- **Importante para a Avaliação da Sprint 3 (Dois CRUDs completos):**
+  - Para visualizar e avaliar as duas funcionalidades com CRUD completo integradas à API conforme o edital, **cadastre-se ou acerte o login com o perfil Veterinário (`ROLE_VETERINARIO`)**:
+    1. **CRUD 1 - Pacientes / Pets:** Acessível em *Triagem de Risco → "VER TODOS"* (tela `Patients`), com Create (modal "Novo paciente"), Read (listagem e busca em tempo real), Update (ícone de lápis) e Delete (ícone de lixeira com confirmação).
+    2. **CRUD 2 - Consultas / Appointments:** Acessível em *Triagem de Risco → "CONSULTAS"* (tela `Appointments`), com Create (formulário de agendamento), Read (listagem), Update (botão "Editar" e "Finalizar") e Delete (botão "Excluir" com confirmação).
 
 ### Funcionalidades integradas
 - Pets: listagem, cadastro de coleira, edição e remoção via `/pets`.
-- Consultas: solicitação, listagem, finalização e remoção via `/appointments`.
+- Consultas: solicitação, listagem, finalização, edição e remoção via `/appointments`.
 - Dashboard e monitoramento: dados de saúde consultados em `/pets/{id}/health-status`.
+- Alertas e notificações: verificação periódica em `/pets/quick-alerts`.
 
 
 ## Principais Dependências
 
 O projeto depende das seguintes bibliotecas principais:
 
-- **expo (~54.0.33):** Plataforma para desenvolvimento React Native.
+- **expo (~57.0.26):** Plataforma para desenvolvimento React Native.
 - **@react-navigation/native & stack/bottom-tabs:** Sistema de navegação completo.
 - **axios:** Cliente para chamadas HTTP da API Java.
 - **@tanstack/react-query:** Gerenciamento das consultas e mutações da API.
