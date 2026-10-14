@@ -10,7 +10,7 @@ import { useHomeData } from '../hooks/useHomeData';
 
 const { width } = Dimensions.get('window');
 
-export const HomeScreen = () => {
+export const HomeScreen = ({ navigation }: any) => {
   const { user } = useAuth();
   const { colors, spacing, typography, radius, shadows, isDark } = useTheme();
   const { status, location, localPet, activitySummary, loading, isError, loadData, petName, petImage } = useHomeData();
@@ -39,7 +39,11 @@ export const HomeScreen = () => {
       <Header 
         title="Dashboard" 
         rightElement={
-          <TouchableOpacity style={[styles.avatarButton, { ...shadows.sm }]}>
+          <TouchableOpacity 
+            style={[styles.avatarButton, { ...shadows.sm }]}
+            onPress={() => navigation.navigate('Profile')}
+            accessibilityLabel="Ir para o perfil do pet"
+          >
             {petImage ? (
               <Image 
                 source={petImage} 
@@ -100,7 +104,7 @@ export const HomeScreen = () => {
           <Text style={[styles.sectionTitle, { color: colors.text, fontSize: typography.sizes.lg }]}>
             Sinais Vitais
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Alerts')}>
             <Text style={{ color: colors.primary, fontWeight: '600' }}>Alertas</Text>
           </TouchableOpacity>
         </View>
@@ -140,30 +144,32 @@ export const HomeScreen = () => {
             Última Localização
           </Text>
         </View>
-        <Card variant="elevated" padding="md">
-          <View style={styles.locationRow}>
-            <View style={[
-              styles.locationIcon, 
-              { 
-                backgroundColor: isDark ? colors.primary + '25' : colors.primary + '14', 
-                borderRadius: radius.round 
-              }
-            ]}>
-              <MaterialCommunityIcons name="map-marker" size={24} color={colors.primary} />
+        <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('Map')}>
+          <Card variant="elevated" padding="md">
+            <View style={styles.locationRow}>
+              <View style={[
+                styles.locationIcon, 
+                { 
+                  backgroundColor: isDark ? colors.primary + '25' : colors.primary + '14', 
+                  borderRadius: radius.round 
+                }
+              ]}>
+                <MaterialCommunityIcons name="map-marker" size={24} color={colors.primary} />
+              </View>
+              <View style={styles.locationInfo}>
+                <Text style={[styles.locationTitle, { color: colors.text, fontSize: typography.sizes.md }]}>
+                  {location && typeof location.latitude === 'number' && typeof location.longitude === 'number'
+                    ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`
+                    : 'Sem localização'}
+                </Text>
+                <Text style={[styles.locationSubtitle, { color: colors.textSecondary, fontSize: typography.sizes.sm }]}>
+                  {location ? `Atualizado em ${new Date(location.timestamp).toLocaleString()}` : 'Nenhuma leitura disponível'}
+                </Text>
+              </View>
+              <MaterialCommunityIcons name="chevron-right" size={24} color={colors.gray400} />
             </View>
-            <View style={styles.locationInfo}>
-              <Text style={[styles.locationTitle, { color: colors.text, fontSize: typography.sizes.md }]}>
-                {location && typeof location.latitude === 'number' && typeof location.longitude === 'number'
-                  ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`
-                  : 'Sem localização'}
-              </Text>
-              <Text style={[styles.locationSubtitle, { color: colors.textSecondary, fontSize: typography.sizes.sm }]}>
-                {location ? `Atualizado em ${new Date(location.timestamp).toLocaleString()}` : 'Nenhuma leitura disponível'}
-              </Text>
-            </View>
-            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.gray400} />
-          </View>
-        </Card>
+          </Card>
+        </TouchableOpacity>
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text, fontSize: typography.sizes.lg }]}>

@@ -20,6 +20,7 @@ export const MapScreen = () => {
   const { status, location, localPet, loading, isError, retry, petImage } = useMapData();
   const { colors, spacing, radius, shadows, isDark } = useTheme();
   const mapRef = React.useRef<MapView>(null);
+  const [isSatellite, setIsSatellite] = React.useState(false);
 
   React.useEffect(() => {
     if (location && mapRef.current) {
@@ -54,8 +55,9 @@ export const MapScreen = () => {
         ref={mapRef}
         style={styles.map}
         provider={PROVIDER_GOOGLE}
+        mapType={isSatellite ? 'hybrid' : 'standard'}
         initialRegion={location ?? DEFAULT_REGION}
-        customMapStyle={isDark ? midnightMapStyle : []}
+        customMapStyle={isDark && !isSatellite ? midnightMapStyle : []}
       >
         {location && (
           <Marker coordinate={location}>
@@ -74,8 +76,12 @@ export const MapScreen = () => {
       </MapView>
       
       <View style={[styles.controls, { top: 100, right: spacing.lg }]}>
-        <TouchableOpacity style={[styles.controlButton, { backgroundColor: colors.card, ...shadows.md }]}>
-          <Icon name="layers-outline" size={24} color={colors.text} />
+        <TouchableOpacity 
+          style={[styles.controlButton, { backgroundColor: colors.card, ...shadows.md }]}
+          onPress={() => setIsSatellite(prev => !prev)}
+          accessibilityLabel="Alternar visualização do mapa"
+        >
+          <Icon name={isSatellite ? "map-outline" : "layers-outline"} size={24} color={isSatellite ? colors.primary : colors.text} />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.controlButton, { backgroundColor: colors.card, ...shadows.md, marginTop: spacing.md }]}

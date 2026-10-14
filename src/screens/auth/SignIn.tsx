@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, StatusBar, Image, SafeAreaView, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, StatusBar, Image, SafeAreaView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useSignIn } from '../../hooks/useSignIn';
@@ -92,7 +92,10 @@ export const SignIn = ({ navigation }: any) => {
               icon={<MaterialCommunityIcons name="lock" size={20} color={inputIconColor} />}
             />
 
-            <TouchableOpacity style={styles.forgotPassword}>
+            <TouchableOpacity 
+              style={styles.forgotPassword}
+              onPress={() => Alert.alert('Recuperação de Senha', 'Para recuperar sua senha, entre em contato com o suporte ou solicite a redefinição ao administrador do sistema.')}
+            >
               <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
