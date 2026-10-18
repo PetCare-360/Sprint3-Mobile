@@ -6,6 +6,7 @@ import { PatientService } from '../services/patientService';
 import { notificationService } from '../services/notificationService';
 import { appointmentReminderStorage } from '../storage/appointmentReminderStorage';
 import { Appointment } from '../types/appointment';
+import { useAuth } from '../context/AuthContext';
 
 const formatForInput = (value: string) => {
   const date = new Date(value);
@@ -28,6 +29,10 @@ const parseScheduledAt = (value: string) => {
 
 export function useAppointments() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  // /pets/patients é exclusivo de veterinário/admin (403 para tutor). O tutor
+  // agenda para os próprios pets, que vêm de /pets/all.
+  const isClinician = user?.role === 'ROLE_VETERINARIO' || user?.role === 'ROLE_ADMIN';
   const [petId, setPetId] = useState('');
   const [veterinarianId, setVeterinarianId] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
@@ -40,8 +45,10 @@ export function useAppointments() {
   });
 
   const { data: patients = [], isLoading: patientsLoading, isError: patientsError } = useQuery({
-    queryKey: ['patients'],
-    queryFn: PatientService.getPatients,
+    // role/id na chave: evita reaproveitar o cache de outra conta logada antes.
+    queryKey: ['appointment-pets', user?.id, user?.role],
+    queryFn: isClinician ? PatientService.getPatients : PatientService.getPets,
+    enabled: !!user,
   });
 
   const { data: veterinarians = [], isLoading: veterinariansLoading, isError: veterinariansError } = useQuery({
