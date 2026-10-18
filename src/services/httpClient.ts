@@ -41,7 +41,7 @@ httpClient.interceptors.request.use(async config => {
 httpClient.interceptors.response.use(
   response => response,
   error => {
-    if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
       tokenStorage.removeToken();
     }
     return Promise.reject(error);

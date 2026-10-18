@@ -33,6 +33,12 @@ export function useAppointments() {
   // /pets/patients é exclusivo de veterinário/admin (403 para tutor). O tutor
   // agenda para os próprios pets, que vêm de /pets/all.
   const isClinician = user?.role === 'ROLE_VETERINARIO' || user?.role === 'ROLE_ADMIN';
+  const isVeterinarian = user?.role === 'ROLE_VETERINARIO';
+  const canRequestAppointment = user?.role === 'ROLE_CLIENTE' || user?.role === 'ROLE_ADMIN';
+  const canFinishAppointment = user?.role === 'ROLE_VETERINARIO' || user?.role === 'ROLE_ADMIN';
+  const canEditAppointment = user?.role === 'ROLE_CLIENTE' || user?.role === 'ROLE_ADMIN';
+  const canDeleteAppointment = user?.role === 'ROLE_VETERINARIO' || user?.role === 'ROLE_ADMIN';
+
   const [petId, setPetId] = useState('');
   const [veterinarianId, setVeterinarianId] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
@@ -89,9 +95,9 @@ export function useAppointments() {
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       await scheduleReminderFor(created);
       resetForm();
-      Alert.alert('Sucesso', 'Consulta solicitada.');
+      Alert.alert('Sucesso', 'Consulta solicitada com sucesso.');
     },
-    onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível solicitar a consulta.'),
+    onError: (error: Error) => Alert.alert('Erro ao agendar consulta', error.message || 'Não foi possível solicitar a consulta.'),
   });
 
   const updateMutation = useMutation({
@@ -104,7 +110,7 @@ export function useAppointments() {
       resetForm();
       Alert.alert('Sucesso', 'Consulta atualizada.');
     },
-    onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível atualizar a consulta.'),
+    onError: (error: Error) => Alert.alert('Erro ao atualizar consulta', error.message || 'Não foi possível atualizar a consulta.'),
   });
 
   const finishMutation = useMutation({
@@ -112,8 +118,9 @@ export function useAppointments() {
     onSuccess: async (_, id) => {
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       await cancelReminderFor(id);
+      Alert.alert('Sucesso', 'Consulta finalizada com sucesso.');
     },
-    onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível finalizar a consulta.'),
+    onError: (error: Error) => Alert.alert('Erro ao finalizar consulta', error.message || 'Não foi possível finalizar a consulta.'),
   });
 
   const removeMutation = useMutation({
@@ -121,17 +128,26 @@ export function useAppointments() {
     onSuccess: async (_, id) => {
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       await cancelReminderFor(id);
+      Alert.alert('Sucesso', 'Consulta excluída.');
     },
-    onError: error => Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível excluir a consulta.'),
+    onError: (error: Error) => Alert.alert('Erro ao excluir consulta', error.message || 'Não foi possível excluir a consulta.'),
   });
 
   const create = () => {
+    if (isVeterinarian) {
+      Alert.alert(
+        'Ação exclusiva do Tutor',
+        'Pelas regras da clínica, apenas o tutor do pet pode solicitar novas consultas. Como veterinário, você pode acompanhar, finalizar e desmarcar atendimentos agendados na lista abaixo.'
+      );
+      return;
+    }
+
     const parsedPetId = Number(petId);
     const parsedVeterinarianId = Number(veterinarianId);
     const parsedDate = parseScheduledAt(scheduledAt);
 
     if (!parsedPetId || !parsedVeterinarianId || !parsedDate || !reason.trim()) {
-      Alert.alert('Erro', 'Selecione o pet, o veterinário e informe data, horário e motivo.');
+      Alert.alert('Campos incompletos', 'Selecione o pet, o veterinário e informe data, horário e motivo da consulta.');
       return;
     }
 
@@ -150,6 +166,14 @@ export function useAppointments() {
   };
 
   const startEdit = (appointment: Appointment) => {
+    if (isVeterinarian) {
+      Alert.alert(
+        'Ação exclusiva do Tutor',
+        'O horário e motivo da consulta só podem ser alterados pelo tutor do pet ou administrador.'
+      );
+      return;
+    }
+
     const patient = appointment.petId
       ? patients.find(item => String(item.id) === String(appointment.petId))
       : patients.find(item => item.name.trim().toLowerCase() === appointment.petName.trim().toLowerCase());
@@ -179,6 +203,12 @@ export function useAppointments() {
     scheduledAt,
     reason,
     editingId,
+    userRole: user?.role,
+    isVeterinarian,
+    canRequestAppointment,
+    canFinishAppointment,
+    canEditAppointment,
+    canDeleteAppointment,
     setPetId,
     setVeterinarianId,
     setScheduledAt,

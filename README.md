@@ -78,9 +78,11 @@ Inicie o servidor do Expo utilizando um dos comandos abaixo:
 ### Autenticação e Avaliação dos CRUDs
 - **Cadastro e Login:** Crie um usuário na tela de cadastro (`SignUp`) informando nome, e-mail, senha e escolhendo o tipo de conta. A autenticação é real com JWT emitido pelo backend Spring Boot e a sessão é salva no dispositivo.
 - **Importante para a Avaliação da Sprint 3 (Dois CRUDs completos):**
-  - Para visualizar e avaliar as duas funcionalidades com CRUD completo integradas à API conforme o edital, **cadastre-se ou acerte o login com o perfil Veterinário (`ROLE_VETERINARIO`)**:
-    1. **CRUD 1 - Pacientes / Pets:** Acessível em *Triagem de Risco → "VER TODOS"* (tela `Patients`), com Create (modal "Novo paciente"), Read (listagem e busca em tempo real), Update (ícone de lápis) e Delete (ícone de lixeira com confirmação).
-    2. **CRUD 2 - Consultas / Appointments:** Acessível em *Triagem de Risco → "CONSULTAS"* (tela `Appointments`), com Create (formulário de agendamento), Read (listagem), Update (botão "Editar" e "Finalizar") e Delete (botão "Excluir" com confirmação).
+  - **CRUD 1 - Pacientes / Pets:** Acessível no perfil Veterinário (`ROLE_VETERINARIO`) em *Triagem de Risco → "VER TODOS"* (tela `Patients`), com Create (modal "Novo paciente"), Read (listagem e busca em tempo real), Update (ícone de lápis) e Delete (ícone de lixeira com confirmação).
+  - **CRUD 2 - Consultas / Appointments:** Acessível tanto pelo Tutor quanto pelo Veterinário de forma integrada com a API:
+    - **No perfil Tutor (`ROLE_CLIENTE`):** Acessível em *Perfil → "Minhas Consultas"*, permitindo Create (solicitar consulta com vinculação automática ao veterinário), Read (listar agendamentos) e Update (editar data, horário e motivo).
+    - **No perfil Veterinário (`ROLE_VETERINARIO`):** Acessível em *Triagem de Risco → "CONSULTAS"*, permitindo Read (visualizar agenda clínica dos pacientes), Update (botão "Finalizar atendimento" via `/appointments/{id}/finish`) e Delete (botão "Excluir" com confirmação via `DELETE /appointments/{id}`).
+    - *Nota de negócio da API:* A regra de negócio do backend Java (`AppointmentService`) determina que a solicitação inicial de consulta é prerrogativa do tutor do pet, cabendo ao veterinário acompanhar, atender/finalizar e gerenciar o agendamento.
 
 ### Funcionalidades integradas
 - Pets: listagem, cadastro de coleira, edição e remoção via `/pets`.
