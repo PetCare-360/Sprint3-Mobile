@@ -52,7 +52,7 @@ O projeto utiliza tecnologias de ponta para garantir performance, escalabilidade
 ### Configuração (Variáveis de Ambiente)
 O aplicativo consome a API Spring Boot da Sprint 3 hospedada no Render. Crie um arquivo `.env` na raiz do projeto com as seguintes chaves:
 ```env
-EXPO_PUBLIC_API_BASE_URL=https://sprint3-java-sempaginahtml.onrender.com/
+EXPO_PUBLIC_API_BASE_URL=https://sprint3-java-sempaginahtml-1.onrender.com/
 EXPO_PUBLIC_FIREBASE_BASE_URL=https://s1mobile-f18a8-default-rtdb.firebaseio.com/
 EXPO_PUBLIC_FIREBASE_API_TOKEN=4it2ulgS70Q32BZycWCbZmrcC6rFERjJCGUiLH1K
 EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyDNTSIWqWpxkHQ_Vno43rMGyF_tWSxbfL4
@@ -147,7 +147,11 @@ A aplicação gerencia múltiplos fluxos de acesso garantindo segurança e segme
 
 ## Link Demonstração
 Link da demonstração no Youtube ->
-[Demonstração](https://youtu.be/W3OSDGeC_es)
+[Demonstração](https://www.youtube.com/watch?v=7UkAPelEYro)
+
+## Link Convite App Distribution
+[Link do convite](https://appdistribution.firebase.dev/i/589bc38778c80318) - 
+[Release link](https://appdistribution.firebase.google.com/testerapps/1:82496624818:android:c30c7c0e6e9e29042191ab/releases/0uq2nvpvhlkd0?utm_source=firebase-console)
 
 ## Autores
 LeonardoZerbinatti - [GitHub](https://github.com/LeonardoZerbinattiDeSales)<br>
