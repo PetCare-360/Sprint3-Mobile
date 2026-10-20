@@ -151,7 +151,7 @@ Link da demonstração no Youtube ->
 
 ## Link Convite App Distribution
 [Link do convite](https://appdistribution.firebase.dev/i/589bc38778c80318) - 
-[Release link](https://appdistribution.firebase.google.com/testerapps/1:82496624818:android:c30c7c0e6e9e29042191ab/releases/07sfhnc5lji7g?utm_source=firebase-console)
+[Release link](https://appdistribution.firebase.google.com/testerapps/1:82496624818:android:c30c7c0e6e9e29042191ab/releases/3evocica7jd90?utm_source=firebase-console)
 
 ## Autores
 LeonardoZerbinatti - [GitHub](https://github.com/LeonardoZerbinattiDeSales)<br>
